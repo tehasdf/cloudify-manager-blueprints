@@ -1,0 +1,2 @@
+ETCD_DATA_DIR=/var/lib/etcd
+ETCD_NAME={{ ctx.instance.id }}

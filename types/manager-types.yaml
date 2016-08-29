@@ -35,20 +35,16 @@ node_types:
             hide_output: &hide_output
               default:
                 - running
-            fabric_env: &simple_fabric_env
-              default:
-                user: { get_input: ssh_user }
-                port: { get_input: ssh_port }
-                key_filename: { get_input: ssh_key_filename }
-                host_string: { get_attribute: [manager_configuration, public_ip] }
-                always_use_pty: true
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/manager/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   cloudify.nodes.MyCloudifyManager:
     derived_from: cloudify.nodes.SoftwareComponent
@@ -208,14 +204,16 @@ node_types:
               # mode until we find a better position for it.
               default: components/python/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/python/scripts/validate.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.JavaRuntime:
     derived_from: cloudify.nodes.SoftwareComponent
@@ -235,14 +233,34 @@ node_types:
             script_path:
               default: components/java/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/java/scripts/validate.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+
+  manager.nodes.Etcd:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      etcd_package_url:
+        default: https://trewq.pl/etcd-v3.0.6-linux-amd64.tar.gz
+        # default: https://github.com/coreos/etcd/releases/download/v3.0.6/etcd-v3.0.6-linux-amd64.tar.gz -o etcd-v3.0.6-linux-amd64.tar.gz
+      discovery:
+        default: https://discovery.etcd.io/15861b39e2bc1ff769ecab361476338e
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/etcd/scripts/create.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.RabbitMQ:
     derived_from: cloudify.nodes.MessageBusServer
@@ -313,21 +331,24 @@ node_types:
             script_path:
               default: components/rabbitmq/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/rabbitmq/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/rabbitmq/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.Elasticsearch:
     derived_from: cloudify.nodes.DBMS
@@ -385,21 +406,24 @@ node_types:
             script_path:
               default: components/elasticsearch/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/elasticsearch/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/elasticsearch/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.Logstash:
     derived_from: cloudify.nodes.SoftwareComponent
@@ -435,7 +459,8 @@ node_types:
             script_path:
               default: components/logstash/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
             ES_ENDPOINT_IP:
               default: { get_attribute: [elasticsearch, es_endpoint_ip] }
         start:
@@ -444,14 +469,16 @@ node_types:
             script_path:
               default: components/logstash/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/logstash/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.InfluxDB:
     derived_from: cloudify.nodes.DBMS
@@ -475,21 +502,24 @@ node_types:
             script_path:
               default: components/influxdb/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/influxdb/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/influxdb/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.Nginx:
     derived_from: cloudify.nodes.WebServer
@@ -514,7 +544,8 @@ node_types:
             script_path:
               default: components/nginx/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_task
           inputs:
@@ -526,21 +557,24 @@ node_types:
               default:
                 agent_packages: { get_input: agent_package_urls }
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/nginx/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/nginx/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.Riemann:
     derived_from: cloudify.nodes.SoftwareComponent
@@ -585,27 +619,31 @@ node_types:
             script_path:
               default: components/riemann/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/riemann/scripts/configure.py
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/riemann/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/riemann/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.RestService:
     derived_from: cloudify.nodes.ApplicationModule
@@ -699,7 +737,8 @@ node_types:
             script_path:
               default: components/restservice/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
             ES_ENDPOINT_IP:
               default: { get_attribute: [elasticsearch, es_endpoint_ip] }
         configure:
@@ -708,21 +747,24 @@ node_types:
             script_path:
               default: components/restservice/scripts/configure.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/restservice/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/restservice/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.ManagementWorker:
     derived_from: cloudify.nodes.ApplicationModule
@@ -802,27 +844,31 @@ node_types:
             script_path:
               default: components/mgmtworker/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/mgmtworker/scripts/configure.py
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/mgmtworker/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/mgmtworker/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.AmqpInfluxBroker:
     derived_from: cloudify.nodes.ApplicationModule
@@ -867,7 +913,8 @@ node_types:
             script_path:
               default: components/amqpinflux/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
             INFLUXDB_ENDPOINT_IP:
               default: { get_attribute: [influxdb, influxdb_endpoint_ip] }
         start:
@@ -876,14 +923,16 @@ node_types:
             script_path:
               default: components/amqpinflux/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/amqpinflux/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.WebUI:
     derived_from: cloudify.nodes.ApplicationModule
@@ -916,7 +965,8 @@ node_types:
             script_path:
               default: components/webui/scripts/create.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
             INFLUXDB_ENDPOINT_IP:
               default: { get_attribute: [influxdb, influxdb_endpoint_ip] }
         start:
@@ -925,14 +975,16 @@ node_types:
             script_path:
               default: components/webui/scripts/start.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         stop:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/webui/scripts/stop.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.CLI:
     derived_from: cloudify.nodes.ApplicationModule
@@ -965,14 +1017,16 @@ node_types:
             script_path:
               default: components/cli/scripts/create.sh
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
               default: components/cli/scripts/start.sh
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   manager.nodes.Sanity:
     derived_from: cloudify.nodes.SoftwareComponent
@@ -994,7 +1048,8 @@ node_types:
               default:
                 local_key_path: { get_input: ssh_key_filename }
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
@@ -1005,7 +1060,8 @@ node_types:
             manager_ip:
               default: { get_attribute: [manager_host, public_ip] }
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
 ######################################################################
 # most relationship declarations here do not provide any functionality
@@ -1045,7 +1101,8 @@ relationships:
           inputs:
             script_path:
               default: components/mgmtworker/scripts/preconfigure.py
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   riemann_to_manager_configuration:
     derived_from: cloudify.relationships.depends_on
@@ -1056,7 +1113,8 @@ relationships:
           inputs:
             script_path:
               default: components/riemann/scripts/preconfigure.py
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   nginx_to_manager_configuration:
     derived_from: cloudify.relationships.depends_on
@@ -1068,7 +1126,8 @@ relationships:
             script_path:
               default: components/nginx/scripts/preconfigure.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   elasticsearch_to_manager_configuration:
     derived_from: cloudify.relationships.depends_on
@@ -1080,7 +1139,8 @@ relationships:
             script_path:
               default: components/elasticsearch/scripts/preconfigure.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   rest_to_manager_configuration:
     derived_from: cloudify.relationships.depends_on
@@ -1094,7 +1154,8 @@ relationships:
             task_name:
               default: install_plugins
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure:
@@ -1103,7 +1164,8 @@ relationships:
             script_path:
               default: components/restservice/scripts/preconfigure.py
             hide_output: *hide_output
-            fabric_env: *simple_fabric_env
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
 
   sanity_to_mgr_config:
     derived_from: cloudify.relationships.depends_on
@@ -1126,3 +1188,10 @@ relationships:
 
   webui_to_restservice:
     derived_from: cloudify.relationships.connected_to
+
+  manager_host_config_from_cluster_config:
+    derived_from: cloudify.relationships.contained_in
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: ha.ha.tasks.manager_host_config_from_cluster_config

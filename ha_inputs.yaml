@@ -1,0 +1,5 @@
+public_ip: 10.0.1.25
+private_ip: 10.0.1.25
+ssh_user: centos
+ssh_key_filename: /home/asdf/projects/cloudify/vm/.vagrant/machines/default/virtualbox/private_key
+ignore_bootstrap_validations: true

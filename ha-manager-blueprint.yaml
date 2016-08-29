@@ -1,0 +1,225 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4.1/types.yaml
+  - http://www.getcloudify.org/spec/fabric-plugin/1.4.1/plugin.yaml
+  - types/manager-types.yaml
+  - inputs/manager-inputs.yaml
+
+
+plugins:
+  cli:
+    install: false
+    executor: central_deployment_agent
+  ha:
+    install: false
+    executor: central_deployment_agent
+
+inputs:
+
+  #############################
+  # Provider specific Inputs
+  #############################
+  public_ip:
+    type: string
+
+  private_ip:
+    type: string
+
+  ssh_user:
+    type: string
+
+  ssh_port:
+    type: string
+    default: 22
+    description: >
+      Manager SSH port
+
+  ssh_key_filename:
+    type: string
+
+  agents_user:
+    default: ubuntu
+    type: string
+
+  resources_prefix:
+    default: ''
+    type: string
+
+  #############################
+  # Upload Resources Inputs
+  #############################
+  dsl_resources:
+    description: >
+      Holds a set of dsl required resources
+    default:
+      - {'source_path': 'http://www.getcloudify.org/spec/openstack-plugin/1.4/plugin.yaml', 'destination_path': '/spec/openstack-plugin/1.4/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/aws-plugin/1.4.1/plugin.yaml', 'destination_path': '/spec/aws-plugin/1.4.1/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/tosca-vcloud-plugin/1.3.1/plugin.yaml', 'destination_path': '/spec/tosca-vcloud-plugin/1.3.1/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/vsphere-plugin/2.0/plugin.yaml', 'destination_path': '/spec/vsphere-plugin/2.0/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/fabric-plugin/1.4.1/plugin.yaml', 'destination_path': '/spec/fabric-plugin/1.4.1/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/diamond-plugin/1.3.4/plugin.yaml', 'destination_path': '/spec/diamond-plugin/1.3.4/plugin.yaml'}
+      - {'source_path': 'http://www.getcloudify.org/spec/cloudify/3.4.1/types.yaml', 'destination_path': '/spec/cloudify/3.4.1/types.yaml'}
+
+  #############################
+  # Dev Inputs
+  #############################
+
+  # Some plugins installed from sources require compilation - installs a
+  # compiler and the python headers to allow that.
+  install_python_compilers:
+    type: boolean
+    default: false
+
+  #############################
+  # Telecom Edition
+  #############################
+  telecom_edition:
+    description: >
+      Set this to true if you want Telecom Edition
+    type: boolean
+    default: false
+
+######################################################################
+# This is a simple blueprint specific node_type to allow us to define
+# The public_ip of the machine is an accessible property of the host.
+# By default, the `ip` property is the private ip.
+######################################################################
+node_types:
+  cloudify.nodes.ManagerHost:
+    derived_from: cloudify.nodes.Compute
+    properties:
+      public_ip:
+        type: string
+        default: { get_input: public_ip }
+
+
+######################################################################
+# These nodes comprise the manager's infrastructure and components
+######################################################################
+node_templates:
+
+  cluster_configuration:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          ha.ha.tasks.prepare_cluster_configuration
+
+  manager_host_configuration:
+    type: cloudify.nodes.Root
+    relationships:
+      - type: manager_host_config_from_cluster_config
+        target: cluster_configuration
+
+  manager_host:
+    type: cloudify.nodes.ManagerHost
+    properties:
+      install_agent: false
+      ip: { get_input: private_ip }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host_configuration
+
+  # #####################################################################
+  # The manager_configuration node is meant to be read by Cloudify to
+  # provide runtime configuration and information for the CLI and the
+  # Manager.
+  # #####################################################################
+  manager_resources:
+    type: cloudify.nodes.ManagerResources
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_configuration
+
+  manager_configuration:
+    type: cloudify.nodes.MyCloudifyManager
+    properties:
+      ssh_user: { get_input: ssh_user }
+      ssh_port: { get_input: ssh_port }
+      ssh_key_filename: { get_input: ssh_key_filename }
+      cloudify:
+        resources_prefix: { get_input: resources_prefix }
+
+        cloudify_agent:
+          min_workers: 0
+          max_workers: 5
+          remote_execution_port: 22
+          user: { get_input: agents_user }
+          broker_ip: { get_input: rabbitmq_endpoint_ip }
+          broker_user: { get_input: rabbitmq_username }
+          broker_pass: { get_input: rabbitmq_password }
+          broker_ssl_enabled: { get_input: rabbitmq_ssl_enabled }
+          broker_ssl_cert: { get_input: rabbitmq_cert_public }
+          verify_rest_certificate: { get_input: agent_verify_rest_certificate }
+
+        workflows:
+          task_retries: -1  # this means forever
+          task_retry_interval: 30
+
+        policy_engine:
+          start_timeout: 30
+
+        # Declare rules for the default import resolver
+        # which enables using the manager in offline mode.
+        # The resolver replaces an import's http link with the local path
+        # on the manager according to the matching rule's value.
+        # If the resolver cannot read the import from the specified local path
+        # (e.g. when the manager is not in offline mode),
+        # it will fall back to the original http link.
+        import_resolver:
+          parameters:
+            rules:
+            - {'http://www.getcloudify.org/spec': 'file:///opt/manager/resources/spec'}
+
+        upload_resources:
+          dsl_resources: { get_input: dsl_resources }
+
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: components/manager/scripts/configure_manager.py
+            hide_output: &hide_output
+              - running
+            fabric_env: { get_attribute: [manager_host_configuration, fabric_env] }
+
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              implementation: components/manager/scripts/set_manager_ips.py
+              inputs:
+                public_ip: { get_property: [manager_host, public_ip] }
+                # rest_host_internal_endpoint_type: { get_property: [rest_service, rest_host_internal_endpoint_type] }
+                # rest_host_external_endpoint_type: { get_property: [rest_service, rest_host_external_endpoint_type] }
+                rest_host_internal_endpoint_type: private_ip
+                rest_host_external_endpoint_type: public_ip
+
+  etcd:
+    type: manager.nodes.Etcd
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+
+groups:
+  cloudify_manager:
+    members:
+      - manager_host_configuration
+      - manager_host
+      - manager_resources
+      - manager_configuration
+      - etcd
+
+
+policies:
+  scale_policy1:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 1
+    targets: [cloudify_manager]
