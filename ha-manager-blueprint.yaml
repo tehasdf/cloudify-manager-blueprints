@@ -208,13 +208,15 @@ node_templates:
       - type: etcd_in_cluster
         target: cluster_configuration
 
-  skydns:
-    type: manager.nodes.Skydns
-  relationships:
-    - type: cloudify.relationships.contained_in
-      target: manager_host
-    - type: cloudify.relationships.depends_on
-      target: etcd
+  rabbitmq:
+    type: manager.nodes.RabbitMQ
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
 
 relationships:
   etcd_in_cluster:
@@ -239,7 +241,7 @@ groups:
       - manager_resources
       - manager_configuration
       - etcd
-      - skydns
+      - rabbitmq
 
 
 policies:
