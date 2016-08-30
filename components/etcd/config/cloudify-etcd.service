@@ -3,14 +3,15 @@ Description=etcd key-value store
 Documentation=https://github.com/coreos/etcd
 
 [Service]
-Type=notify
 EnvironmentFile=-/etc/sysconfig/cloudify-etcd
 ExecStart=/opt/cloudify/etcd/etcd \
     --listen-peer-urls http://{{ ctx.instance.host_ip }}:2380 \
+    --listen-client-urls http://localhost:2379,http://{{ ctx.instance.host_ip }}:2379 \
+    --advertise-client-urls http://localhost:2379,http://{{ ctx.instance.host_ip }}:2379 \
+    --name {{ ctx.instance.id }} \
     --initial-advertise-peer-urls http://{{ ctx.instance.host_ip }}:2380 \
-    --listen-client-urls http://{{ ctx.instance.host_ip }}:2379 \
-    --advertise-client-urls http://{{ ctx.instance.host_ip }}:2379 \
-    --discovery {{ ctx.node.properties.discovery }}
+    --data-dir /opt/cloudify/etcd/data.etcd \
+    --discovery {{ ctx.instance.runtime_properties.etcd_discovery_token }}
 
 Restart=always
 RestartSec=10s

@@ -116,9 +116,8 @@ node_templates:
     type: cloudify.nodes.ManagerHost
     properties:
       install_agent: false
-      ip: { get_input: private_ip }
     relationships:
-      - type: cloudify.relationships.contained_in
+      - type: manager_host_from_config
         target: manager_host_configuration
 
   # #####################################################################
@@ -206,6 +205,24 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: manager_host
+      - type: etcd_in_cluster
+        target: cluster_configuration
+
+
+relationships:
+  etcd_in_cluster:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation:
+            ha.ha.tasks.etcd_in_cluster
+  manager_host_from_config:
+    derived_from: cloudify.relationships.contained_in
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: ha.ha.tasks.manager_host_from_config
 
 groups:
   cloudify_manager:
@@ -221,5 +238,5 @@ policies:
   scale_policy1:
     type: cloudify.policies.scaling
     properties:
-      default_instances: 1
+      default_instances: 2
     targets: [cloudify_manager]
