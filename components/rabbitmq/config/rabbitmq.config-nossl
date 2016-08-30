@@ -1,1 +1,7 @@
-[{rabbit, [{loopback_users, []}]}].
+[
+    {rabbit, [
+        {loopback_users, []},
+        {log_levels, [{autocluster, debug}, {connection, info}]}
+    ]},
+    {autocluster, [{backend, etcd}]}
+].

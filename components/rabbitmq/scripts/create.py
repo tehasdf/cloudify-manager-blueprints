@@ -19,15 +19,8 @@ RABBITMQ_SERVICE_NAME = 'rabbitmq'
 ctx_properties = utils.ctx_factory.create(RABBITMQ_SERVICE_NAME)
 
 
-def rabbitmqctl(cmd, **kwargs):
-    return utils.sudo([
-        'rabbitmqctl',
-        '-n', 'rabbit@{0}'.format(ctx.instance.id)
-    ] + cmd, **kwargs)
-
-
 def check_if_user_exists(username):
-    if username in rabbitmqctl(['list_users'], retries=5).aggr_stdout:
+    if username in utils.rabbitmqctl(['list_users'], retries=5).aggr_stdout:
         return True
     return False
 
@@ -35,8 +28,8 @@ def check_if_user_exists(username):
 def _clear_guest_permissions_if_guest_exists():
     if check_if_user_exists('guest'):
         ctx.logger.info('Disabling RabbitMQ guest user...')
-        rabbitmqctl(['clear_permissions', 'guest'], retries=5)
-        rabbitmqctl(['delete_user', 'guest'], retries=5)
+        utils.rabbitmqctl(['clear_permissions', 'guest'], retries=5)
+        utils.rabbitmqctl(['delete_user', 'guest'], retries=5)
 
 
 def _create_user_and_set_permissions(rabbitmq_username,
@@ -45,10 +38,9 @@ def _create_user_and_set_permissions(rabbitmq_username,
         ctx.logger.info('Creating new user {0}:{1} and setting '
                         'permissions...'.format(
                             rabbitmq_username, rabbitmq_password))
-        rabbitmqctl(['add_user',
-                    rabbitmq_username, rabbitmq_password])
-        rabbitmqctl(['set_permissions',
-                    rabbitmq_username, '.*', '.*', '.*'], retries=5)
+        utils.rabbitmqctl(['add_user', rabbitmq_username, rabbitmq_password])
+        utils.rabbitmqctl(['set_permissions', rabbitmq_username,
+                           '.*', '.*', '.*'], retries=5)
 
 
 def _set_security(rabbitmq_ssl_enabled,

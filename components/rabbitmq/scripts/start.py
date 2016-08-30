@@ -25,7 +25,7 @@ def check_rabbit_running():
     Note that this is currently impossible to do on a remote host, so
     this check only runs when rabbitmq is installed locally.
     """
-    result = utils.sudo(['rabbitmqctl', 'status'], ignore_failures=True)
+    result = utils.rabbitmqctl(['status'], ignore_failures=True)
     if result.returncode != 0:
         raise ValueError('rabbitmqctl status: rabbitmq not running')
 
@@ -43,8 +43,8 @@ def set_rabbitmq_policy(name, expression, policy):
         name, expression, policy))
     # shlex screws this up because we need to pass json and shlex
     # strips quotes so we explicitly pass it as a list.
-    utils.sudo(['rabbitmqctl', 'set_policy', name,
-               expression, policy, '--apply-to', 'queues'])
+    utils.rabbitmqctl(['set_policy', name,
+                       expression, policy, '--apply-to', 'queues'])
 
 
 if not rabbitmq_endpoint_ip:

@@ -177,6 +177,13 @@ def remove(path, ignore_failure=False):
                         .format(path))
 
 
+def rabbitmqctl(cmd, **kwargs):
+    return sudo([
+        'rabbitmqctl',
+        '-n', 'rabbit@{0}'.format(ctx.instance.id)
+    ] + cmd, **kwargs)
+
+
 def _generate_ssl_cert(cert_filename, key_filename, cn):
 
     alt_name = 'IP:{0}'.format(cn)
