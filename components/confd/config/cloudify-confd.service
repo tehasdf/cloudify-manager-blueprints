@@ -3,7 +3,7 @@ Description=confd
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/cloudify-confd
-ExecStart=/opt/cloudify/confd/confd -node http://localhost:2379
+ExecStart=/opt/cloudify/confd/confd -node http://localhost:2379 -interval 10
 
 Restart=always
 RestartSec=10s

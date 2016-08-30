@@ -25,16 +25,19 @@ def install_confd():
     utils.deploy_blueprint_resource(
         'components/confd/conf.d/hosts.toml',
         '/etc/confd/conf.d/hosts.toml',
-        CONFD_SERVICE_NAME
+        CONFD_SERVICE_NAME,
+        render=False
     )
 
     utils.deploy_blueprint_resource(
         'components/confd/templates/hosts.tmpl',
         '/etc/confd/templates/hosts.tmpl',
-        CONFD_SERVICE_NAME
+        CONFD_SERVICE_NAME,
+        render=False
     )
     utils.copy('/etc/hosts', '/opt/cloudify/confd/original_hosts')
 
-    utils.sudo(['/opt/cloudify/etcd/etcdctl', 'mkdir', 'rabbitmq'])
+    utils.sudo(['/opt/cloudify/etcd/etcdctl', 'mkdir', 'rabbitmq'],
+               ignore_failures=True)
 
 install_confd()

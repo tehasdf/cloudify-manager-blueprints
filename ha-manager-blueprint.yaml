@@ -213,8 +213,8 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: manager_host
-      - type: cloudify.relationships.etcd
-        target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: etcd
 
   rabbitmq:
     type: manager.nodes.RabbitMQ
