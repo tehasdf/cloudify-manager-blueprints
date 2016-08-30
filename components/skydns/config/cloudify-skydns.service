@@ -1,0 +1,14 @@
+[Unit]
+Description=skydns
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudify-skydns
+Environment=ETCD_MACHINES='http://localhost:2379'
+ExecStart=/opt/cloudify/skydns -domain ".""
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target
