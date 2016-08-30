@@ -2,6 +2,7 @@
 
 import os
 import time
+import tempfile
 from os.path import join, dirname
 
 from cloudify import ctx
@@ -102,6 +103,20 @@ def _install_rabbitmq():
     utils.yum_install(rabbitmq_rpm_source_url,
                       service_name=RABBITMQ_SERVICE_NAME)
 
+    utils.mkdir('/var/lib/rabbitmq')
+    with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
+        f.write(ctx_properties['erlang_cookie'])
+    utils.sudo('mv {0} /var/lib/rabbitmq/.erlang.cookie'.format(f.name))
+    utils.chown('rabbitmq', 'rabbitmq', '/var/lib/rabbitmq')
+    utils.chmod('0400', '/var/lib/rabbitmq/.erlang.cookie')
+
+    utils.sudo([
+        '/opt/cloudify/etcd/etcdctl',
+        'set',
+        '/rabbitmq/{0}'.format(ctx.instance.id),
+        ctx.instance.host_ip
+    ])
+
     utils.logrotate(RABBITMQ_SERVICE_NAME)
 
     utils.systemd.configure(RABBITMQ_SERVICE_NAME)
@@ -122,9 +137,19 @@ def _install_rabbitmq():
     time.sleep(10)
     utils.wait_for_port(5672)
 
+    autocluster_package = utils.download_cloudify_resource(
+        ctx_properties['autocluster_plugin_url'],
+        RABBITMQ_SERVICE_NAME
+    )
+    utils.untar(
+        autocluster_package,
+        '/usr/lib/rabbitmq/lib/rabbitmq_server-3.5.3/plugins/')
+
     ctx.logger.info('Enabling RabbitMQ Plugins...')
     # Occasional timing issues with rabbitmq starting have resulted in
     # failures when first trying to enable plugins
+    utils.sudo(['rabbitmq-plugins', 'enable', 'autocluster'],
+               retries=5)
     utils.sudo(['rabbitmq-plugins', 'enable', 'rabbitmq_management'],
                retries=5)
     utils.sudo(['rabbitmq-plugins', 'enable', 'rabbitmq_tracing'], retries=5)

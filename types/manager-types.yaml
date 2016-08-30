@@ -273,6 +273,35 @@ node_types:
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
 
+  manager.nodes.Confd:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      confd_binary_url:
+        default: https://github.com/kelseyhightower/confd/releases/download/v0.12.0-alpha3/confd-0.12.0-alpha3-linux-amd64
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/confd/scripts/create.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/confd/scripts/configure.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/confd/scripts/start.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+
   manager.nodes.RabbitMQ:
     derived_from: cloudify.nodes.MessageBusServer
     properties:

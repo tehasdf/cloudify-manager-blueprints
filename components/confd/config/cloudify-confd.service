@@ -1,0 +1,13 @@
+[Unit]
+Description=confd
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudify-confd
+ExecStart=/opt/cloudify/confd/confd -node http://localhost:2379
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target

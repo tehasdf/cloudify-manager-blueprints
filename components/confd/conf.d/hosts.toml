@@ -1,0 +1,9 @@
+[template]
+src="hosts.tmpl"
+dest="/tmp/hosts"
+
+mode="0644"
+keys = [
+  "/rabbitmq"
+]
+reload_cmd = "cat /opt/cloudify/confd/original_hosts /tmp/hosts > /etc/hosts"
