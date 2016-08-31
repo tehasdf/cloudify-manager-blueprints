@@ -1,0 +1,14 @@
+[Unit]
+Description=stolon sentinel
+
+[Service]
+ExecStart=/opt/cloudify/stolon/bin/stolon-sentinel \
+    --cluster-name {{ ctx.node.properties.cluster_name }} \
+    --store-backend etcd
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target
