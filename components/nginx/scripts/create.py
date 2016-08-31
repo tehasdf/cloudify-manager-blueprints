@@ -69,5 +69,19 @@ def install_nginx():
     utils.logrotate(NGINX_SERVICE_NAME)
     utils.clean_var_log_dir(NGINX_SERVICE_NAME)
 
+    utils.deploy_blueprint_resource(
+        'components/nginx/config/upstreams.toml',
+        '/etc/confd/conf.d/upstreams.toml',
+        NGINX_SERVICE_NAME,
+        render=False
+    )
+
+    utils.deploy_blueprint_resource(
+        'components/nginx/config/default.conf.tmpl',
+        '/etc/confd/conf.d/default.conf.tmpl',
+        NGINX_SERVICE_NAME,
+        render=True
+    )
+
 
 install_nginx()

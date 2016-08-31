@@ -34,3 +34,17 @@ if utils.is_upgrade or utils.is_rollback:
 
 utils.verify_service_http(NGINX_SERVICE_NAME, nginx_url, check_response,
                           headers=headers)
+
+utils.sudo([
+    '/opt/cloudify/etcd/etcdctl',
+    'set',
+    '/nginx/{0}'.format(ctx.instance.id),
+    ctx.instance.host_ip
+])
+
+utils.sudo([
+    '/opt/cloudify/etcd/etcdctl',
+    'set',
+    '/fileserver/{0}'.format(ctx.instance.id),
+    '{0}:53229'.format(ctx.instance.host_ip)
+])

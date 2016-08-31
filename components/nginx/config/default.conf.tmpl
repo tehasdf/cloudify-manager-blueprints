@@ -4,20 +4,25 @@ client_max_body_size 0m;
 # Overcoming the renowned http://stackoverflow.com/questions/19238122/nginx-with-ubuntu-and-rails-on-digital-ocean
 types_hash_max_size 4096;
 
-# Upstream for Cloudify's UI.
-upstream cloudify-ui {
-  server 127.0.0.1:9001;
-}
-
 # Upstream for Cloudify's Rest Service.
 upstream cloudify-rest {
-  server 127.0.0.1:{{ ctx.source.instance.runtime_properties.default_rest_service_port }};
+  {% raw %}
+  {{ range gets "/restservice/"* }}
+    # {{base .Key}}
+    server {{.Value}};
+  {{ end }}
+  {% endraw %}
 }
 
 # Upstream for Cloudify's File Server. Since Nginx is serving the fileserver by itself, it's always localhost.
 # This is strictly an implementation detail. The fileserver can sit anywhere else.
 upstream cloudify-resources {
-  server 127.0.0.1:53229;
+  {% raw %}
+  {{ range gets "/fileserver/"* }}
+    # {{base .Key}}
+    server {{.Value}};
+  {{ end }}
+  {% endraw %}
 }
 
 # REST and UI server.
