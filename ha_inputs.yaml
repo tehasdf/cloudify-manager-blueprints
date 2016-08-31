@@ -3,3 +3,10 @@ private_ip: 10.0.1.25
 ssh_user: centos
 ssh_key_filename: /home/asdf/projects/cloudify/vm/.vagrant/machines/default/virtualbox/private_key
 ignore_bootstrap_validations: true
+install_python_compilers: true
+
+rest_service_source_url: https://github.com/cloudify-cosmo/cloudify-manager/archive/CFY-5839-use-flask-with-postgresql.tar.gz
+dsl_parser_source_url: https://github.com/cloudify-cosmo/cloudify-dsl-parser/archive/master.zip
+rest_client_source_url: https://github.com/cloudify-cosmo/cloudify-rest-client/archive/master.zip
+securest_source_url: https://github.com/cloudify-cosmo/flask-securest/archive/0.8.zip
+

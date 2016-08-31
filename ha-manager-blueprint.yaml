@@ -200,6 +200,26 @@ node_templates:
                 rest_host_internal_endpoint_type: private_ip
                 rest_host_external_endpoint_type: public_ip
 
+  python_runtime:
+    type: manager.nodes.PythonRuntime
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+
+  java_runtime:
+    type: manager.nodes.JavaRuntime
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+
   etcd:
     type: manager.nodes.Etcd
     relationships:
@@ -235,6 +255,66 @@ node_templates:
         target: manager_host
       - type: cloudify.relationships.depends_on
         target: etcd
+      - type: cloudify.relationships.depends_on
+        target: python_runtime
+
+  elasticsearch:
+    type: manager.nodes.Elasticsearch
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+      - type: cloudify.relationships.depends_on
+        target: java_runtime
+      - type: elasticsearch_to_manager_configuration
+        target: manager_configuration
+
+  rest_service:
+    type: manager.nodes.RestService
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+      - type: cloudify.relationships.depends_on
+        target: python_runtime
+      - type: rest_to_manager_configuration
+        target: manager_configuration
+      - type: restservice_to_elasticsearch
+        target: elasticsearch
+      - type: restservice_to_rabbitmq
+        target: rabbitmq
+
+  nginx:
+    type: manager.nodes.Nginx
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+      - type: cloudify.relationships.depends_on
+        target: rest_service
+      - type: nginx_to_manager_configuration
+        target: manager_configuration
+
+  mgmt_worker:
+    type: manager.nodes.ManagementWorker
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: manager_resources
+      - type: cloudify.relationships.depends_on
+        target: python_runtime
+      - type: cloudify.relationships.depends_on
+        target: nginx
+      - type: mgmtworker_to_rabbitmq
+        target: rabbitmq
+      - type: mgmtworker_to_manager_configuration
+        target: manager_configuration
 
 relationships:
   etcd_in_cluster:
@@ -244,6 +324,7 @@ relationships:
         preconfigure:
           implementation:
             ha.ha.tasks.etcd_in_cluster
+
   manager_host_from_config:
     derived_from: cloudify.relationships.contained_in
     source_interfaces:
@@ -258,10 +339,16 @@ groups:
       - manager_host
       - manager_resources
       - manager_configuration
+      - python_runtime
+      - java_runtime
       - etcd
       - confd
       - rabbitmq
       - postgresql
+      - elasticsearch
+      - rest_service
+      - nginx
+      - mgmt_worker
 
 policies:
   scale_policy1:

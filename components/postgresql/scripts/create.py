@@ -19,8 +19,6 @@ PREREQS = [
     # psycopg
     'libxslt-devel',
     'libxml2-devel',
-    'python-devel',
-    'gcc-c++',
 
     # stolon
     'go',

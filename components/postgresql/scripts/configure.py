@@ -9,6 +9,13 @@ ctx.download_resource(
     join(dirname(__file__), 'utils.py'))
 import utils  # NOQA
 
+PG_SERVICE_NAME = 'postgresql'
+
 for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
-    utils.systemd.configure(service_name)
+    sid = 'cloudify-{0}'.format(service_name)
+    utils.deploy_blueprint_resource(
+        'components/postgresql/config/{0}.service'.format(service_name),
+        "/usr/lib/systemd/system/{0}.service".format(sid),
+        PG_SERVICE_NAME,
+        render=True)
 utils.systemd.systemctl('daemon-reload')

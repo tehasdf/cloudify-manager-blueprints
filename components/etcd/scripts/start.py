@@ -10,7 +10,7 @@ ctx.download_resource(
 import utils  # NOQA
 
 
-for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
-    utils.systemd.configure(service_name)
-    utils.start_service(service_name)
-    utils.systemd.verify_alive(service_name)
+ETCD_SERVICE_NAME = 'etcd'
+
+utils.start_service(ETCD_SERVICE_NAME)
+utils.systemd.verify_alive(ETCD_SERVICE_NAME)
