@@ -469,6 +469,54 @@ node_types:
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
 
+  manager.nodes.Postgresql:
+    derived_from: cloudify.nodes.DBMS
+    properties:
+      postgresql_db_name:
+        description: postgresql default db name
+        type: string
+        default: cloudify_db
+      cluster_name:
+        description: stolon cluster name
+        type: string
+        default: stolon-cluster
+      pg_repl_username:
+        default: repluser
+      pg_repl_password:
+        default: replpassword
+      pg_su_password:
+        default: root
+      user:
+        default: postgres
+      port:
+        default: 25432
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/postgresql/scripts/create.py
+            hide_output: *hide_output
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/postgresql/scripts/configure.py
+            hide_output: *hide_output
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/postgresql/scripts/start.py
+            hide_output: *hide_output
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+
   manager.nodes.Logstash:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:

@@ -228,6 +228,14 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: confd
 
+  postgresql:
+    type: manager.nodes.Postgresql
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: etcd
+
 relationships:
   etcd_in_cluster:
     derived_from: cloudify.relationships.depends_on
@@ -253,7 +261,7 @@ groups:
       - etcd
       - confd
       - rabbitmq
-
+      - postgresql
 
 policies:
   scale_policy1:

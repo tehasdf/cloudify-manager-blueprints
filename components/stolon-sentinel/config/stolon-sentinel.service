@@ -1,0 +1,15 @@
+[Unit]
+Description=stolon sentinel
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudify-stolon-sentinel
+ExecStart=/opt/cloudify/stolon/bin/stolon-sentinel \
+    --cluster-name {{ ctx.node.properties.cluster_name }} \
+    --store-backend etcd
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target

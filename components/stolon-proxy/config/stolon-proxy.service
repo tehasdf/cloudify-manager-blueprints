@@ -1,0 +1,16 @@
+[Unit]
+Description=stolon proxy
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudify-stolon-proxy
+ExecStart=/opt/cloudify/stolon/bin/stolon-proxy \
+    --cluster-name {{ ctx.node.properties.cluster_name }} \
+    --store-backend etcd \
+    --port {{ ctx.node.properties.port }}
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target

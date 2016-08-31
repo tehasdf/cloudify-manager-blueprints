@@ -9,8 +9,6 @@ ctx.download_resource(
     join(dirname(__file__), 'utils.py'))
 import utils  # NOQA
 
-
 for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
     utils.systemd.configure(service_name)
-    utils.start_service(service_name)
-    utils.systemd.verify_alive(service_name)
+utils.systemd.systemctl('daemon-reload')
