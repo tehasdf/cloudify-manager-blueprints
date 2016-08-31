@@ -10,7 +10,9 @@ ExecStart=/opt/cloudify/stolon/bin/stolon-keeper \
     --pg-repl-username {{ ctx.node.properties.pg_repl_username }} \
     --pg-repl-password {{ ctx.node.properties.pg_repl_password }} \
     --pg-su-password {{ ctx.node.properties.pg_su_password }} \
-    --pg-bin-path /usr/pgsql-9.5/bin
+    --pg-bin-path /usr/pgsql-9.5/bin \
+    --pg-listen-address {{ ctx.instance.host_ip }} \
+    --listen-address {{ ctx.instance.host_ip }}
 
 User={{ ctx.node.properties.user }}
 

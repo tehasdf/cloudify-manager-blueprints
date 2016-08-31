@@ -211,6 +211,12 @@ inputs:
     type: string
     default: node-v0.10.35-linux-x64.tar.gz
 
+  confd_package_url:
+    type: string
+
+  etcd_package_url:
+    type: string
+
   #############################
   # RabbitMQ Inputs
   #############################

@@ -10,14 +10,17 @@ ctx.download_resource(
 import utils  # NOQA
 
 PG_SERVICE_NAME = 'postgresql'
+ctx_properties = utils.ctx_factory.get(PG_SERVICE_NAME)
+
 
 for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
     utils.start_service(service_name)
 
 
 def psql(cmd):
-
     return utils.sudo([
+        'env',
+        'PGPASSWORD={0}'.format(ctx_properties['pg_su_password']),
         'psql',
         '--host', '127.0.0.1',
         '--port', '25432',

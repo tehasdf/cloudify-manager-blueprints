@@ -4,7 +4,9 @@ Description=stolon sentinel
 [Service]
 ExecStart=/opt/cloudify/stolon/bin/stolon-sentinel \
     --cluster-name {{ ctx.node.properties.cluster_name }} \
-    --store-backend etcd
+    --store-backend etcd \
+    --listen-address {{ ctx.instance.host_ip }} \
+    --initial-cluster-config /opt/cloudify/stolon/initial_cluster_config.json
 
 Restart=always
 RestartSec=10s

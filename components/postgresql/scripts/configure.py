@@ -11,6 +11,12 @@ import utils  # NOQA
 
 PG_SERVICE_NAME = 'postgresql'
 
+utils.deploy_blueprint_resource(
+    'components/postgresql/config/initial_cluster_config.json',
+    '/opt/cloudify/stolon/initial_cluster_config.json',
+    service_name=PG_SERVICE_NAME
+)
+
 for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
     sid = 'cloudify-{0}'.format(service_name)
     utils.deploy_blueprint_resource(
