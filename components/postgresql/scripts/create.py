@@ -39,6 +39,12 @@ def _install_postgresql():
     utils.chown(ctx_properties['user'], ctx_properties['user'], '/var/pgdata')
     # for compiling psycopg2
     utils.ln('/usr/pgsql-9.5/bin/pg_config', '/usr/bin/pg_config')
-
+    utils.sudo([
+        'git',
+        'clone',
+        'https://github.com/sorintlab/stolon /opt/cloudify/stolon',
+        '/opt/cloudify/stolon'
+    ])
+    utils.sudo(['/opt/cloudify/stolon/build'])
 
 _install_postgresql()

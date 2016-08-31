@@ -37,7 +37,8 @@ def install_confd():
     )
     utils.copy('/etc/hosts', '/opt/cloudify/confd/original_hosts')
 
-    utils.sudo(['/opt/cloudify/etcd/etcdctl', 'mkdir', 'rabbitmq'],
-               ignore_failures=True)
+    for directory in ['rabbitmq', 'nginx', 'fileserver']:
+        utils.sudo(['/opt/cloudify/etcd/etcdctl', 'mkdir', directory],
+                   ignore_failures=True)
 
 install_confd()

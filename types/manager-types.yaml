@@ -1172,9 +1172,6 @@ relationships:
   restservice_to_elasticsearch:
     derived_from: cloudify.relationships.connected_to
 
-  restservice_to_postgresql:
-    derived_from: cloudify.relationships.connected_to
-
   nginx_to_webui:
     derived_from: cloudify.relationships.connected_to
 

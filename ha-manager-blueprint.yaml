@@ -287,6 +287,8 @@ node_templates:
         target: elasticsearch
       - type: restservice_to_rabbitmq
         target: rabbitmq
+      - type: cloudify.relationships.depends_on
+        target: postgresql
 
   nginx:
     type: manager.nodes.Nginx
@@ -299,6 +301,8 @@ node_templates:
         target: rest_service
       - type: nginx_to_manager_configuration
         target: manager_configuration
+      - type: cloudify.relationships.depends_on
+        target: confd
 
   mgmt_worker:
     type: manager.nodes.ManagementWorker
