@@ -23,13 +23,13 @@ syncthing_package_url: https://github.com/syncthing/syncthing/releases/download/
 manager_cluster_config:
   - fabric_env:
       host_string: 10.0.1.25
-      key_filename: /home/asdf/projects/cloudify/vm/.vagrant/machines/default/virtualbox/private_key
+      key_filename: /home/lukasz/projects/cli_work/vm/.vagrant/machines/default/virtualbox/private_key
       user: vagrant
     private_ip: 10.0.1.25
     public_ip: 10.0.1.25
   - fabric_env:
       host_string: 10.0.1.26
-      key_filename: /home/asdf/projects/cloudify/vm2/.vagrant/machines/default/virtualbox/private_key
+      key_filename: /home/lukasz/projects/cli_work/vm3/.vagrant/machines/default/virtualbox/private_key
       user: vagrant
     private_ip: 10.0.1.26
     public_ip: 10.0.1.26
@@ -37,7 +37,7 @@ manager_cluster_config:
 etcd_cluster_config:
   - fabric_env:
       host_string: 10.0.1.27
-      key_filename: /home/asdf/projects/cloudify/vm3/.vagrant/machines/default/virtualbox/private_key
+      key_filename: /home/lukasz/projects/cli_work/vm4/.vagrant/machines/default/virtualbox/private_key
       user: vagrant
     private_ip: 10.0.1.27
     public_ip: 10.0.1.27

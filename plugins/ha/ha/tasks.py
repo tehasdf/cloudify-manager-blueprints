@@ -3,15 +3,15 @@ import requests
 
 def prepare_cluster_configuration(ctx):
     cluster_config = ctx.node.properties['cluster_config']
-    ctx.instance.runtime_properties['cluster_config'] = cluster_config
     ctx.instance.runtime_properties['manager_ips'] = \
         [v['public_ip'] for v in cluster_config]
+    ctx.instance.runtime_properties['cluster_config'] = cluster_config
 
 
 def manager_cluster_to_etcd_cluster(ctx):
     cluster_size = \
-        len(ctx.source.instance.runtime_properties['cluster_config']) + \
-        len(ctx.target.instance.runtime_properties['cluster_config'])
+        len(ctx.source.node.properties['cluster_config']) + \
+        len(ctx.target.node.properties['cluster_config'])
     etcd_discovery_url = \
         'https://discovery.etcd.io/new?size={0}'.format(cluster_size)
 
