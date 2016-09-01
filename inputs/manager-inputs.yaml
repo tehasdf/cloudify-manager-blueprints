@@ -217,6 +217,10 @@ inputs:
   etcd_package_url:
     type: string
 
+  syncthing_package_url:
+    type: string
+    default: https://github.com/syncthing/syncthing/releases/download/v0.14.5/syncthing-macosx-amd64-v0.14.5.tar.gz
+
   #############################
   # RabbitMQ Inputs
   #############################

@@ -94,20 +94,25 @@ node_types:
       public_ip:
         type: string
         default: { get_input: public_ip }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          ha.ha.tasks.prepare_cluster_configuration
 
+  cloudify.nodes.Cluster:
+    derived_from: cloudify.nodes.Root
+    properties:
+      cluster_config: {}
 
 ######################################################################
 # These nodes comprise the manager's infrastructure and components
 ######################################################################
 node_templates:
   etcd_cluster_configuration:
-    type: cloudify.nodes.Root
+    type: cloudify.nodes.Cluster
     properties:
       cluster_config: { get_input: etcd_cluster_config }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        configure:
-          ha.ha.tasks.prepare_cluster_configuration
+
 
   etcd_host_configuration:
     type: cloudify.nodes.Root
@@ -132,13 +137,9 @@ node_templates:
         target: etcd_cluster_configuration
 
   cluster_configuration:
-    type: cloudify.nodes.Root
+    type: cloudify.nodes.Cluster
     properties:
       cluster_config: { get_input: manager_cluster_config }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        configure:
-          ha.ha.tasks.prepare_cluster_configuration
     relationships:
       - type: manager_cluster_to_etcd_cluster
         target: etcd_cluster_configuration
