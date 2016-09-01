@@ -2,29 +2,24 @@ import requests
 
 
 def prepare_cluster_configuration(ctx):
-    cluster_config = [
-        {
-            'fabric_env': {
-                'host_string': '10.0.1.25',
-                'key_filename': '/home/asdf/projects/cloudify/vm/.vagrant/machines/default/virtualbox/private_key',  # NOQA
-                'user': 'vagrant'
-            },
-            'private_ip': '10.0.1.25'
-        },
-        {
-            'fabric_env': {
-                'host_string': '10.0.1.26',
-                'key_filename': '/home/asdf/projects/cloudify/vm2/.vagrant/machines/default/virtualbox/private_key',  # NOQA
-                'user': 'vagrant'
-            },
-            'private_ip': '10.0.1.26'
-        }
-    ]
+    cluster_config = ctx.node.properties['cluster_config']
     ctx.instance.runtime_properties['cluster_config'] = cluster_config
+    ctx.instance.runtime_properties['manager_ips'] = \
+        [v['public_ip'] for v in cluster_config]
+
+
+def manager_cluster_to_etcd_cluster(ctx):
+    cluster_size = \
+        len(ctx.source.instance.runtime_properties['cluster_config']) + \
+        len(ctx.target.instance.runtime_properties['cluster_config'])
     etcd_discovery_url = \
-        'https://discovery.etcd.io/new?size={0}'.format(len(cluster_config))
-    ctx.instance.runtime_properties['etcd_discovery_token'] = \
-        requests.get(etcd_discovery_url).text.strip()
+        'https://discovery.etcd.io/new?size={0}'.format(cluster_size)
+
+    etcd_discovery_token = requests.get(etcd_discovery_url).text.strip()
+    ctx.source.instance.runtime_properties['etcd_discovery_token'] = \
+        etcd_discovery_token
+    ctx.target.instance.runtime_properties['etcd_discovery_token'] = \
+        etcd_discovery_token
 
 
 def manager_host_config_from_cluster_config(ctx):

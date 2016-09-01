@@ -46,6 +46,8 @@ inputs:
     default: ''
     type: string
 
+  etcd_cluster_config: {}
+  manager_cluster_config: {}
   #############################
   # Upload Resources Inputs
   #############################
@@ -98,13 +100,48 @@ node_types:
 # These nodes comprise the manager's infrastructure and components
 ######################################################################
 node_templates:
+  etcd_cluster_configuration:
+    type: cloudify.nodes.Root
+    properties:
+      cluster_config: { get_input: etcd_cluster_config }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          ha.ha.tasks.prepare_cluster_configuration
+
+  etcd_host_configuration:
+    type: cloudify.nodes.Root
+    relationships:
+      - type: manager_host_config_from_cluster_config
+        target: etcd_cluster_configuration
+
+  etcd_host:
+    type: cloudify.nodes.ManagerHost
+    properties:
+      install_agent: false
+    relationships:
+      - type: manager_host_from_config
+        target: etcd_host_configuration
+
+  additional_etcd:
+    type: manager.nodes.Etcd
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: etcd_host
+      - type: etcd_in_cluster
+        target: etcd_cluster_configuration
 
   cluster_configuration:
     type: cloudify.nodes.Root
+    properties:
+      cluster_config: { get_input: manager_cluster_config }
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
+        configure:
           ha.ha.tasks.prepare_cluster_configuration
+    relationships:
+      - type: manager_cluster_to_etcd_cluster
+        target: etcd_cluster_configuration
 
   manager_host_configuration:
     type: cloudify.nodes.Root
@@ -346,6 +383,12 @@ relationships:
         preconfigure:
           implementation: ha.ha.tasks.manager_host_from_config
 
+  manager_cluster_to_etcd_cluster:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: ha.ha.tasks.manager_cluster_to_etcd_cluster
 groups:
   cloudify_manager:
     members:
@@ -365,16 +408,27 @@ groups:
       - nginx
       - mgmt_worker
 
+  manager_etcd_cluster:
+    members:
+      - etcd_host_configuration
+      - etcd_host
+      - additional_etcd
+
 policies:
   scale_policy1:
     type: cloudify.policies.scaling
     properties:
       default_instances: 2
     targets: [cloudify_manager]
+  scale_policy2:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 1
+    targets: [manager_etcd_cluster]
 
 outputs:
   manager_ip:
-    value: ''
+    value: {get_attribute: [cluster_configuration, manager_ips]}
   rest_server_public_certificate:
     value: ''
   private_ip:
