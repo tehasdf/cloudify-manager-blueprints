@@ -94,15 +94,15 @@ node_types:
       public_ip:
         type: string
         default: { get_input: public_ip }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        configure:
-          ha.ha.tasks.prepare_cluster_configuration
 
   cloudify.nodes.Cluster:
     derived_from: cloudify.nodes.Root
     properties:
       cluster_config: {}
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          ha.ha.tasks.prepare_cluster_configuration
 
 ######################################################################
 # These nodes comprise the manager's infrastructure and components
@@ -135,6 +135,23 @@ node_templates:
         target: etcd_host
       - type: etcd_in_cluster
         target: etcd_cluster_configuration
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: components/etcd/scripts/create.py
+            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: components/etcd/scripts/configure.py
+            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: components/etcd/scripts/start.py
+            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
 
   cluster_configuration:
     type: cloudify.nodes.Cluster
