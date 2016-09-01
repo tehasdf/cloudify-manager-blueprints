@@ -1,5 +1,5 @@
 [template]
-src="syncthings.csv.toml"
+src="syncthings.csv.tmpl"
 dest="/opt/cloudify/syncthing/syncthings.csv"
 
 mode="0644"

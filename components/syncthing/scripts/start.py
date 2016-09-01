@@ -43,7 +43,8 @@ utils.deploy_blueprint_resource(
 
 utils.systemd.restart('confd')
 
-
+# XXX
+utils.sudo('chmod a+rX -R /root')
 tree = ET.parse('/root/.config/syncthing/config.xml')
 apikey = tree.findall('.//gui/apikey')[0].text
 headers = {'X-Api-Key': apikey}
