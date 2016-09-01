@@ -17,3 +17,4 @@ manager_resources_package: http://10.0.1.1:8080/cloudify-manager-resources_3.4.1
 
 etcd_package_url: http://10.0.1.1:8080/etcd-v3.0.6-linux-amd64.tar.gz
 confd_package_url: http://10.0.1.1:8080/confd-0.12.0-alpha3-linux-amd64
+syncthing_package_url: https://github.com/syncthing/syncthing/releases/download/v0.14.5/syncthing-linux-amd64-v0.14.5.tar.gz

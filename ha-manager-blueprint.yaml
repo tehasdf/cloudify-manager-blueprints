@@ -272,6 +272,16 @@ node_templates:
       - type: elasticsearch_to_manager_configuration
         target: manager_configuration
 
+  syncthing:
+    type: manager.nodes.Syncthing
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: etcd
+      - type: cloudify.relationships.depends_on
+        target: confd
+
   rest_service:
     type: manager.nodes.RestService
     relationships:
@@ -351,6 +361,7 @@ groups:
       - postgresql
       - elasticsearch
       - rest_service
+      - syncthing
       - nginx
       - mgmt_worker
 
@@ -360,3 +371,11 @@ policies:
     properties:
       default_instances: 2
     targets: [cloudify_manager]
+
+outputs:
+  manager_ip:
+    value: ''
+  rest_server_public_certificate:
+    value: ''
+  private_ip:
+    value: ''

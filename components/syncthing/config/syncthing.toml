@@ -1,0 +1,9 @@
+[template]
+src="syncthings.csv.toml"
+dest="/opt/cloudify/syncthing/syncthings.csv"
+
+mode="0644"
+keys = [
+  "/syncthing",
+]
+reload_cmd = "python /opt/cloudify/syncthing/rerender.py && systemctl restart cloudify-syncthing"
