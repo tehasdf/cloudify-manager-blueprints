@@ -54,10 +54,6 @@ def preconfigure_nginx():
         '/etc/nginx/nginx.conf',
         NGINX_SERVICE_NAME, load_ctx=False)
     utils.deploy_blueprint_resource(
-        '{0}/default.conf'.format(CONFIG_PATH),
-        '/etc/nginx/conf.d/default.conf',
-        NGINX_SERVICE_NAME, load_ctx=False)
-    utils.deploy_blueprint_resource(
         '{0}/rest-location.cloudify'.format(CONFIG_PATH),
         '/etc/nginx/conf.d/rest-location.cloudify',
         NGINX_SERVICE_NAME, load_ctx=False)
@@ -69,10 +65,11 @@ def preconfigure_nginx():
         '{0}/redirect-to-fileserver.cloudify'.format(CONFIG_PATH),
         '/etc/nginx/conf.d/redirect-to-fileserver.cloudify',
         NGINX_SERVICE_NAME, load_ctx=False)
-    utils.deploy_blueprint_resource(
-        '{0}/ui-locations.cloudify'.format(CONFIG_PATH),
-        '/etc/nginx/conf.d/ui-locations.cloudify',
-        NGINX_SERVICE_NAME, load_ctx=False)
+    # XXX ui is disabled...
+    # utils.deploy_blueprint_resource(
+    #     '{0}/ui-locations.cloudify'.format(CONFIG_PATH),
+    #     '/etc/nginx/conf.d/ui-locations.cloudify',
+    #     NGINX_SERVICE_NAME, load_ctx=False)
     utils.deploy_blueprint_resource(
         '{0}/logs-conf.cloudify'.format(CONFIG_PATH),
         '/etc/nginx/conf.d/logs-conf.cloudify',
@@ -80,6 +77,5 @@ def preconfigure_nginx():
 
     utils.systemd.enable(NGINX_SERVICE_NAME,
                          append_prefix=False)
-
 
 preconfigure_nginx()

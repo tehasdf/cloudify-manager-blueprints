@@ -22,19 +22,6 @@ def check_response(response):
     return response.code in {200, 401}
 
 
-utils.start_service(NGINX_SERVICE_NAME, append_prefix=False)
-utils.systemd.verify_alive(NGINX_SERVICE_NAME, append_prefix=False)
-
-nginx_url = '{0}://127.0.0.1/api/v2.1/version'.format(
-    ctx.instance.runtime_properties['rest_protocol'])
-
-headers = {}
-if utils.is_upgrade or utils.is_rollback:
-    headers = utils.create_maintenance_headers()
-
-utils.verify_service_http(NGINX_SERVICE_NAME, nginx_url, check_response,
-                          headers=headers)
-
 utils.sudo([
     '/opt/cloudify/etcd/etcdctl',
     'set',
@@ -48,3 +35,17 @@ utils.sudo([
     '/fileserver/{0}'.format(ctx.instance.id),
     '{0}:53229'.format(ctx.instance.host_ip)
 ])
+# XXX synchronous confd?
+
+utils.start_service(NGINX_SERVICE_NAME, append_prefix=False)
+utils.systemd.verify_alive(NGINX_SERVICE_NAME, append_prefix=False)
+
+nginx_url = '{0}://127.0.0.1/api/v2.1/version'.format(
+    ctx.instance.runtime_properties['rest_protocol'])
+
+headers = {}
+if utils.is_upgrade or utils.is_rollback:
+    headers = utils.create_maintenance_headers()
+
+utils.verify_service_http(NGINX_SERVICE_NAME, nginx_url, check_response,
+                          headers=headers)

@@ -5,9 +5,12 @@ ssh_key_filename: /home/asdf/projects/cloudify/vm/.vagrant/machines/default/virt
 ignore_bootstrap_validations: true
 install_python_compilers: true
 
-rest_service_source_url: https://github.com/cloudify-cosmo/cloudify-manager/archive/CFY-5839-use-flask-with-postgresql.tar.gz
+rest_service_source_url: https://github.com/tehasdf/cloudify-manager/archive/CFY-5839-use-flask-with-postgresql.tar.gz
 dsl_parser_source_url: https://github.com/cloudify-cosmo/cloudify-dsl-parser/archive/master.zip
 rest_client_source_url: https://github.com/cloudify-cosmo/cloudify-rest-client/archive/master.zip
+plugins_common_source_url: https://github.com/cloudify-cosmo/cloudify-plugins-common/archive/master.zip
+agent_source_url: https://github.com/cloudify-cosmo/cloudify-agent/archive/master.zip
+
 securest_source_url: https://github.com/cloudify-cosmo/flask-securest/archive/0.8.zip
 
 manager_resources_package: http://10.0.1.1:8080/cloudify-manager-resources_3.4.1-sp-b410.tar.gz

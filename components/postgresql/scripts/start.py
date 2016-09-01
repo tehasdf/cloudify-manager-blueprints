@@ -28,5 +28,17 @@ def psql(cmd):
         '-c', cmd
     ])
 
-psql('create database cloudify;')
-psql("create user cloudify with password 'cloudify' login superuser;")
+
+@utils.retry(RuntimeError, tries=20)
+def check_postgresql_up():
+    psql('select 1;')
+
+check_postgresql_up()
+
+db_exists = psql("select 'exists' from pg_database where datname='cloudify';")
+if 'exists' not in db_exists.aggr_stdout:
+    psql('create database cloudify;')
+
+user_exists = psql("select 'exists' from pg_user where usename='cloudify';")
+if 'exists' not in user_exists.aggr_stdout:
+    psql("create user cloudify with password 'cloudify' login superuser;")

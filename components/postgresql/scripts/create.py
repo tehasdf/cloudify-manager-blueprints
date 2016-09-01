@@ -35,6 +35,9 @@ def _install_postgresql():
     for package in PREREQS:
         utils.yum_install(package, PG_SERVICE_NAME)
 
+    utils.sudo('ln -s /usr/pgsql-9.5/bin/pg_config /usr/bin/pg_config',
+               ignore_failures=True)
+
     utils.mkdir('/var/pgdata')
     utils.chown(ctx_properties['user'], ctx_properties['user'], '/var/pgdata')
     utils.sudo([
@@ -43,6 +46,7 @@ def _install_postgresql():
         'https://github.com/sorintlab/stolon',
         '/opt/cloudify/stolon'
     ])
+    ctx.logger.info('Building stolon')
     utils.sudo(['/opt/cloudify/stolon/build'])
 
 _install_postgresql()

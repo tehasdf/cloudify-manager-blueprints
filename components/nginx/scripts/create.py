@@ -75,13 +75,15 @@ def install_nginx():
         NGINX_SERVICE_NAME,
         render=False
     )
-
+    # XXX this should be in preconfigure?
     utils.deploy_blueprint_resource(
         'components/nginx/config/default.conf.tmpl',
-        '/etc/confd/conf.d/default.conf.tmpl',
+        '/etc/confd/templates/default.conf.tmpl',
         NGINX_SERVICE_NAME,
-        render=True
+        render=False
     )
+    # XXX should probably add --onetime to ensure synchronous render
+    utils.systemd.restart('confd')
 
 
 install_nginx()

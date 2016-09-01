@@ -71,5 +71,7 @@ utils.sudo([
     '/restservice/{0}'.format(ctx.instance.id),
     '{0}:{1}'.format(
         ctx.instance.host_ip,
-        8100 # ctx.source.instance.runtime_properties.default_rest_service_port
+        # ctx.source.instance.runtime_properties.default_rest_service_port
+        8100
+    )
 ])

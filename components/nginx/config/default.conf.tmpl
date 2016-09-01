@@ -6,27 +6,24 @@ types_hash_max_size 4096;
 
 # Upstream for Cloudify's Rest Service.
 upstream cloudify-rest {
-  {% raw %}
-  {{ range gets "/restservice/"* }}
+  {{ range gets "/restservice/*" }}
     # {{base .Key}}
     server {{.Value}};
   {{ end }}
-  {% endraw %}
 }
 
 # Upstream for Cloudify's File Server. Since Nginx is serving the fileserver by itself, it's always localhost.
 # This is strictly an implementation detail. The fileserver can sit anywhere else.
 upstream cloudify-resources {
-  {% raw %}
-  {{ range gets "/fileserver/"* }}
+  {{ range gets "/fileserver/*" }}
     # {{base .Key}}
     server {{.Value}};
   {{ end }}
-  {% endraw %}
 }
 
 # REST and UI server.
-include "/etc/nginx/conf.d/{{ ctx.source.instance.runtime_properties.rest_protocol }}-rest-server.cloudify";
+# XXX rest_protocol from runtime props
+include "/etc/nginx/conf.d/http-rest-server.cloudify";
 
 # File server. Currently, as Nginx also hosts the fileserver locally, it points at a local path.
-include "/etc/nginx/conf.d/{{ ctx.source.instance.runtime_properties.rest_protocol }}-file-server.cloudify";
+include "/etc/nginx/conf.d/http-file-server.cloudify";
