@@ -108,11 +108,12 @@ def _install_rabbitmq():
     utils.chown('rabbitmq', 'rabbitmq', '/var/lib/rabbitmq')
     utils.chmod('0400', '/var/lib/rabbitmq/.erlang.cookie')
 
-    utils.sudo([
-        '/opt/cloudify/etcd/etcdctl',
-        'set',
-        '/rabbitmq/{0}'.format(ctx.instance.id),
-        ctx.instance.host_ip
+    utils.run([
+        'curl',
+        '-XPUT',
+        '-d', ctx.instance.host_ip,
+        'http://{0}:8500/v1/kv/rabbitmq/{1}'.format(
+            ctx.instance.host_ip, ctx.instance.id),
     ])
 
     utils.logrotate(RABBITMQ_SERVICE_NAME)

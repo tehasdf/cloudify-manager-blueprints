@@ -34,7 +34,7 @@ manager_cluster_config:
     private_ip: 10.0.1.26
     public_ip: 10.0.1.26
 
-etcd_cluster_config:
+consul_cluster_config:
   - fabric_env:
       host_string: 10.0.1.27
       key_filename: /home/lukasz/projects/cli_work/vm4/.vagrant/machines/default/virtualbox/private_key

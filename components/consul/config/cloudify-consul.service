@@ -1,0 +1,24 @@
+[Unit]
+Description=consul
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudify-consul
+ExecStart=/opt/cloudify/consul/consul \
+	agent \
+	{% for host in ctx.instance.runtime_properties.consul_cluster.hosts -%}
+	-join {{ host }} \
+	{% endfor -%}
+	-node {{ ctx.instance.id }} \
+	-bootstrap-expect {{ ctx.instance.runtime_properties.consul_cluster.expect }} \
+	-data-dir /opt/cloudify/consul/data \
+	-server \
+	-ui \
+	-advertise {{ ctx.instance.host_ip }} \
+	-client {{ ctx.instance.host_ip }}
+
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target
