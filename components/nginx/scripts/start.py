@@ -22,18 +22,20 @@ def check_response(response):
     return response.code in {200, 401}
 
 
-utils.sudo([
-    '/opt/cloudify/etcd/etcdctl',
-    'set',
-    '/nginx/{0}'.format(ctx.instance.id),
-    ctx.instance.host_ip
+utils.run([
+    'curl',
+    '-XPUT',
+    '-d', ctx.instance.host_ip,
+    'http://{0}:8500/v1/kv/nginx/{1}'.format(
+        ctx.instance.host_ip, ctx.instance.id),
 ])
 
-utils.sudo([
-    '/opt/cloudify/etcd/etcdctl',
-    'set',
-    '/fileserver/{0}'.format(ctx.instance.id),
-    '{0}:53229'.format(ctx.instance.host_ip)
+utils.run([
+    'curl',
+    '-XPUT',
+    '-d', '{0}:53229'.format(ctx.instance.host_ip),
+    'http://{0}:8500/v1/kv/fileserver/{1}'.format(
+        ctx.instance.host_ip, ctx.instance.id),
 ])
 # XXX synchronous confd?
 

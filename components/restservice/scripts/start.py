@@ -65,13 +65,15 @@ restservice_url = 'http://{0}:{1}'.format('127.0.0.1', 8100)
 utils.verify_service_http(REST_SERVICE_NAME, restservice_url)
 verify_restservice(restservice_url)
 
-utils.sudo([
-    '/opt/cloudify/etcd/etcdctl',
-    'set',
-    '/restservice/{0}'.format(ctx.instance.id),
+utils.run([
+    'curl',
+    '-XPUT',
+    '-d',
     '{0}:{1}'.format(
         ctx.instance.host_ip,
         # ctx.source.instance.runtime_properties.default_rest_service_port
         8100
-    )
+    ),
+    'http://{0}:8500/v1/kv/restservice/{1}'.format(
+        ctx.instance.host_ip, ctx.instance.id),
 ])

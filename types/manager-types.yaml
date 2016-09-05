@@ -244,32 +244,32 @@ node_types:
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
 
-  manager.nodes.Etcd:
+  manager.nodes.Consul:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:
-      etcd_package_url:
-        default: { get_input: etcd_package_url }
+      consul_binary_url:
+        default: https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
-              default: components/etcd/scripts/create.py
+              default: components/consul/scripts/create.py
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
-              default: components/etcd/scripts/configure.py
+              default: components/consul/scripts/configure.py
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
             script_path:
-              default: components/etcd/scripts/start.py
+              default: components/consul/scripts/start.py
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
 

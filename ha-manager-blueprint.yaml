@@ -46,7 +46,7 @@ inputs:
     default: ''
     type: string
 
-  etcd_cluster_config: {}
+  consul_cluster_config: {}
   manager_cluster_config: {}
   #############################
   # Upload Resources Inputs
@@ -108,58 +108,58 @@ node_types:
 # These nodes comprise the manager's infrastructure and components
 ######################################################################
 node_templates:
-  etcd_cluster_configuration:
+  consul_cluster_configuration:
     type: cloudify.nodes.Cluster
     properties:
-      cluster_config: { get_input: etcd_cluster_config }
+      cluster_config: { get_input: consul_cluster_config }
 
 
-  etcd_host_configuration:
+  consul_host_configuration:
     type: cloudify.nodes.Root
     relationships:
       - type: manager_host_config_from_cluster_config
-        target: etcd_cluster_configuration
+        target: consul_cluster_configuration
 
-  etcd_host:
+  consul_host:
     type: cloudify.nodes.ManagerHost
     properties:
       install_agent: false
     relationships:
       - type: manager_host_from_config
-        target: etcd_host_configuration
+        target: consul_host_configuration
 
-  additional_etcd:
-    type: manager.nodes.Etcd
+  additional_consul:
+    type: manager.nodes.Consul
     relationships:
       - type: cloudify.relationships.contained_in
-        target: etcd_host
-      - type: etcd_in_cluster
-        target: etcd_cluster_configuration
+        target: consul_host
+      - type: consul_in_cluster
+        target: consul_cluster_configuration
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
-            script_path: components/etcd/scripts/create.py
-            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
+            script_path: components/consul/scripts/create.py
+            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
         configure:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
-            script_path: components/etcd/scripts/configure.py
-            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
+            script_path: components/consul/scripts/configure.py
+            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
         start:
           implementation: fabric.fabric_plugin.tasks.run_script
           inputs:
-            script_path: components/etcd/scripts/start.py
-            fabric_env: { get_attribute: [etcd_host_configuration, fabric_env] }
+            script_path: components/consul/scripts/start.py
+            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
 
   cluster_configuration:
     type: cloudify.nodes.Cluster
     properties:
       cluster_config: { get_input: manager_cluster_config }
     relationships:
-      - type: manager_cluster_to_etcd_cluster
-        target: etcd_cluster_configuration
+      - type: manager_cluster_to_consul_cluster
+        target: consul_cluster_configuration
 
   manager_host_configuration:
     type: cloudify.nodes.Root
@@ -275,12 +275,12 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: manager_resources
 
-  etcd:
-    type: manager.nodes.Etcd
+  consul:
+    type: manager.nodes.Consul
     relationships:
       - type: cloudify.relationships.contained_in
         target: manager_host
-      - type: etcd_in_cluster
+      - type: consul_in_cluster
         target: cluster_configuration
 
   confd:
@@ -289,7 +289,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: manager_host
       - type: cloudify.relationships.depends_on
-        target: etcd
+        target: consul
 
   rabbitmq:
     type: manager.nodes.RabbitMQ
@@ -309,7 +309,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: manager_host
       - type: cloudify.relationships.depends_on
-        target: etcd
+        target: consul
       - type: cloudify.relationships.depends_on
         target: python_runtime
 
@@ -333,7 +333,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: manager_host
       - type: cloudify.relationships.depends_on
-        target: etcd
+        target: consul
       - type: cloudify.relationships.depends_on
         target: confd
 
@@ -386,13 +386,13 @@ node_templates:
         target: manager_configuration
 
 relationships:
-  etcd_in_cluster:
+  consul_in_cluster:
     derived_from: cloudify.relationships.depends_on
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure:
           implementation:
-            ha.ha.tasks.etcd_in_cluster
+            ha.ha.tasks.consul_in_cluster
 
   manager_host_from_config:
     derived_from: cloudify.relationships.contained_in
@@ -401,12 +401,12 @@ relationships:
         preconfigure:
           implementation: ha.ha.tasks.manager_host_from_config
 
-  manager_cluster_to_etcd_cluster:
+  manager_cluster_to_consul_cluster:
     derived_from: cloudify.relationships.connected_to
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure:
-          implementation: ha.ha.tasks.manager_cluster_to_etcd_cluster
+          implementation: ha.ha.tasks.manager_cluster_to_consul_cluster
 groups:
   cloudify_manager:
     members:
@@ -416,7 +416,7 @@ groups:
       - manager_configuration
       - python_runtime
       - java_runtime
-      - etcd
+      - consul
       - confd
       - rabbitmq
       - postgresql
@@ -426,11 +426,11 @@ groups:
       - nginx
       - mgmt_worker
 
-  manager_etcd_cluster:
+  manager_consul_cluster:
     members:
-      - etcd_host_configuration
-      - etcd_host
-      - additional_etcd
+      - consul_host_configuration
+      - consul_host
+      - additional_consul
 
 policies:
   scale_policy1:
@@ -442,7 +442,7 @@ policies:
     type: cloudify.policies.scaling
     properties:
       default_instances: 1
-    targets: [manager_etcd_cluster]
+    targets: [manager_consul_cluster]
 
 outputs:
   manager_ip:

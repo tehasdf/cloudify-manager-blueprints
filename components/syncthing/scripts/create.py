@@ -15,10 +15,10 @@ ctx_properties = utils.ctx_factory.create(SYNCTHING_SERVICE_NAME)
 
 
 def install_syncthing():
-    etcd_package = \
+    syncthing_package = \
         utils.download_cloudify_resource(
             ctx_properties['syncthing_package_url'], SYNCTHING_SERVICE_NAME)
-    utils.untar(etcd_package, destination='/opt/cloudify/syncthing')
+    utils.untar(syncthing_package, destination='/opt/cloudify/syncthing')
 
 
 install_syncthing()

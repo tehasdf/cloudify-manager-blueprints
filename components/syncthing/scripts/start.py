@@ -60,9 +60,11 @@ def json_request(url, data=None, method='GET'):
 status = json_request('http://127.0.0.1:8384/rest/system/status')
 my_id = status['myID']
 
-utils.sudo([
-    '/opt/cloudify/etcd/etcdctl',
-    'set',
-    '/syncthing/{0}'.format(ctx.instance.id),
-    '{0},tcp://{1},{2}'.format(my_id, ctx.instance.host_ip, ctx.instance.id)
+utils.run([
+    'curl',
+    '-XPUT',
+    '-d',
+    '{0},tcp://{1},{2}'.format(my_id, ctx.instance.host_ip, ctx.instance.id),
+    'http://{0}:8500/v1/kv/syncthing/{1}'.format(
+        ctx.instance.host_ip, ctx.instance.id),
 ])

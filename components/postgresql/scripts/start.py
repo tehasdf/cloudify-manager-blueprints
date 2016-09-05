@@ -26,12 +26,15 @@ def psql(cmd):
         '--port', '25432',
         '-U', 'postgres',
         '-c', cmd
-    ])
+    ], ignore_failures=True)
 
 
 @utils.retry(RuntimeError, tries=20)
 def check_postgresql_up():
-    psql('select 1;')
+    ret = psql('select 1;')
+    if ret.returncode != 0:
+        raise RuntimeError('pg not running')
+
 
 check_postgresql_up()
 
