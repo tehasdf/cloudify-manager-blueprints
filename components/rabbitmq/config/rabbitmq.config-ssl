@@ -9,6 +9,5 @@
                           {versions, ['tlsv1.2', 'tlsv1.1']}
                          ]}
           ]},
-        {log_levels, [{autocluster, debug}, {connection, info}]},
-        {autocluster, [{backend, etcd}]}          
+        {log_levels, [{autocluster, debug}, {connection, info}]}
 ].

@@ -22,23 +22,6 @@ def check_response(response):
     return response.code in {200, 401}
 
 
-utils.run([
-    'curl',
-    '-XPUT',
-    '-d', ctx.instance.host_ip,
-    'http://{0}:8500/v1/kv/nginx/{1}'.format(
-        ctx.instance.host_ip, ctx.instance.id),
-])
-
-utils.run([
-    'curl',
-    '-XPUT',
-    '-d', '{0}:53229'.format(ctx.instance.host_ip),
-    'http://{0}:8500/v1/kv/fileserver/{1}'.format(
-        ctx.instance.host_ip, ctx.instance.id),
-])
-# XXX synchronous confd?
-
 utils.start_service(NGINX_SERVICE_NAME, append_prefix=False)
 utils.systemd.verify_alive(NGINX_SERVICE_NAME, append_prefix=False)
 

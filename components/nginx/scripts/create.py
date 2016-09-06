@@ -69,21 +69,5 @@ def install_nginx():
     utils.logrotate(NGINX_SERVICE_NAME)
     utils.clean_var_log_dir(NGINX_SERVICE_NAME)
 
-    utils.deploy_blueprint_resource(
-        'components/nginx/config/upstreams.toml',
-        '/etc/confd/conf.d/upstreams.toml',
-        NGINX_SERVICE_NAME,
-        render=False
-    )
-    # XXX this should be in preconfigure?
-    utils.deploy_blueprint_resource(
-        'components/nginx/config/default.conf.tmpl',
-        '/etc/confd/templates/default.conf.tmpl',
-        NGINX_SERVICE_NAME,
-        render=False
-    )
-    # XXX should probably add --onetime to ensure synchronous render
-    utils.systemd.restart('confd')
-
 
 install_nginx()

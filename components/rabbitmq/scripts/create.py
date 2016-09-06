@@ -108,14 +108,6 @@ def _install_rabbitmq():
     utils.chown('rabbitmq', 'rabbitmq', '/var/lib/rabbitmq')
     utils.chmod('0400', '/var/lib/rabbitmq/.erlang.cookie')
 
-    utils.run([
-        'curl',
-        '-XPUT',
-        '-d', ctx.instance.host_ip,
-        'http://{0}:8500/v1/kv/rabbitmq/{1}'.format(
-            ctx.instance.host_ip, ctx.instance.id),
-    ])
-
     utils.logrotate(RABBITMQ_SERVICE_NAME)
 
     utils.systemd.configure(RABBITMQ_SERVICE_NAME)
@@ -136,19 +128,9 @@ def _install_rabbitmq():
     time.sleep(10)
     utils.wait_for_port(5672)
 
-    autocluster_package = utils.download_cloudify_resource(
-        ctx_properties['autocluster_plugin_url'],
-        RABBITMQ_SERVICE_NAME
-    )
-    utils.untar(
-        autocluster_package,
-        '/usr/lib/rabbitmq/lib/rabbitmq_server-3.5.3/plugins/')
-
     ctx.logger.info('Enabling RabbitMQ Plugins...')
     # Occasional timing issues with rabbitmq starting have resulted in
     # failures when first trying to enable plugins
-    utils.sudo(['rabbitmq-plugins', 'enable', 'autocluster'],
-               retries=5)
     utils.sudo(['rabbitmq-plugins', 'enable', 'rabbitmq_management'],
                retries=5)
     utils.sudo(['rabbitmq-plugins', 'enable', 'rabbitmq_tracing'], retries=5)

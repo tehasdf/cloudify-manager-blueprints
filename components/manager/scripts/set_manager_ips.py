@@ -44,10 +44,10 @@ if broker_ip:
     ctx.logger.info('broker_ip set to: {0}'.format(
         source_runtime_props['broker_ip']))
 else:
-    broker_ip = private_ip
+    broker_ip = ctx.source.instance.runtime_properties['floating_ip']
     source_runtime_props['broker_ip'] = broker_ip
     ctx.logger.info('broker_ip is empty, setting to private ip: {0}'.
-                    format(private_ip))
+                    format(broker_ip))
 
 
 # set the internal REST host according to the REST internal endpoint type

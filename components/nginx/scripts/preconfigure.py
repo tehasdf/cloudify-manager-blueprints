@@ -40,6 +40,10 @@ def preconfigure_nginx():
 
     ctx.logger.info('Deploying Nginx configuration files...')
     utils.deploy_blueprint_resource(
+        '{0}/default.conf'.format(CONFIG_PATH),
+        '/etc/nginx/conf.d/default.conf',
+        NGINX_SERVICE_NAME, load_ctx=False)
+    utils.deploy_blueprint_resource(
         '{0}/{1}-rest-server.cloudify'.format(CONFIG_PATH, rest_protocol),
         '/etc/nginx/conf.d/{0}-rest-server.cloudify'.format(rest_protocol),
         NGINX_SERVICE_NAME, load_ctx=False)

@@ -48,6 +48,10 @@ inputs:
 
   consul_cluster_config: {}
   manager_cluster_config: {}
+
+  floating_ip:
+    type: string
+
   #############################
   # Upload Resources Inputs
   #############################
@@ -104,10 +108,20 @@ node_types:
         create:
           ha.ha.tasks.prepare_cluster_configuration
 
+  FloatingIP:
+    derived_from: cloudify.nodes.Root
+    properties:
+      ip: {}
+
 ######################################################################
 # These nodes comprise the manager's infrastructure and components
 ######################################################################
 node_templates:
+  floating_ip:
+    type: FloatingIP
+    properties:
+      ip: { get_input: floating_ip }
+
   consul_cluster_configuration:
     type: cloudify.nodes.Cluster
     properties:
@@ -175,6 +189,16 @@ node_templates:
       - type: manager_host_from_config
         target: manager_host_configuration
 
+  keepalived:
+    type: manager.nodes.Keepalived
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+      - type: keepalived_in_host
+        target: manager_host_configuration
+      - type: set_floating_ip
+        target: floating_ip
+
   # #####################################################################
   # The manager_configuration node is meant to be read by Cloudify to
   # provide runtime configuration and information for the CLI and the
@@ -187,6 +211,9 @@ node_templates:
         target: manager_host
       - type: cloudify.relationships.depends_on
         target: manager_configuration
+      # XXX only for sequencing
+      - type: cloudify.relationships.depends_on
+        target: keepalived
 
   manager_configuration:
     type: cloudify.nodes.MyCloudifyManager
@@ -242,6 +269,8 @@ node_templates:
             fabric_env: { get_attribute: [manager_host_configuration, fabric_env] }
 
     relationships:
+      - type: set_floating_ip
+        target: floating_ip
       - type: cloudify.relationships.contained_in
         target: manager_host
         target_interfaces:
@@ -249,11 +278,9 @@ node_templates:
             postconfigure:
               implementation: components/manager/scripts/set_manager_ips.py
               inputs:
-                public_ip: { get_property: [manager_host, public_ip] }
-                # rest_host_internal_endpoint_type: { get_property: [rest_service, rest_host_internal_endpoint_type] }
-                # rest_host_external_endpoint_type: { get_property: [rest_service, rest_host_external_endpoint_type] }
-                rest_host_internal_endpoint_type: private_ip
-                rest_host_external_endpoint_type: public_ip
+                public_ip: { get_property: [floating_ip, ip] }
+                rest_host_internal_endpoint_type: { get_property: [rest_service, rest_host_internal_endpoint_type] }
+                rest_host_external_endpoint_type: { get_property: [rest_service, rest_host_external_endpoint_type] }
 
   python_runtime:
     type: manager.nodes.PythonRuntime
@@ -300,8 +327,6 @@ node_templates:
         target: manager_configuration
       - type: cloudify.relationships.depends_on
         target: manager_resources
-      - type: cloudify.relationships.depends_on
-        target: confd
 
   postgresql:
     type: manager.nodes.Postgresql
@@ -366,8 +391,6 @@ node_templates:
         target: rest_service
       - type: nginx_to_manager_configuration
         target: manager_configuration
-      - type: cloudify.relationships.depends_on
-        target: confd
 
   mgmt_worker:
     type: manager.nodes.ManagementWorker
@@ -384,6 +407,7 @@ node_templates:
         target: rabbitmq
       - type: mgmtworker_to_manager_configuration
         target: manager_configuration
+
 
 relationships:
   consul_in_cluster:
@@ -407,11 +431,26 @@ relationships:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure:
           implementation: ha.ha.tasks.manager_cluster_to_consul_cluster
+
+  set_floating_ip:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure: ha.ha.tasks.set_floating_ip
+
+  keepalived_in_host:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: ha.ha.tasks.keepalived_config_from_host
+
 groups:
   cloudify_manager:
     members:
       - manager_host_configuration
       - manager_host
+      - keepalived
       - manager_resources
       - manager_configuration
       - python_runtime
@@ -446,7 +485,7 @@ policies:
 
 outputs:
   manager_ip:
-    value: {get_attribute: [cluster_configuration, manager_ips]}
+    value: { get_input: floating_ip }
   rest_server_public_certificate:
     value: ''
   private_ip:

@@ -37,3 +37,13 @@ def consul_in_cluster(ctx):
 def manager_host_from_config(ctx):
     ctx.source.instance.runtime_properties['ip'] = \
         ctx.target.instance.runtime_properties['private_ip']
+
+
+def set_floating_ip(ctx):
+    ctx.source.instance.runtime_properties['floating_ip'] = \
+        ctx.target.node.properties['ip']
+
+
+def keepalived_config_from_host(ctx):
+    ctx.source.instance.runtime_properties['keepalived'] = \
+        ctx.target.instance.runtime_properties['keepalived']

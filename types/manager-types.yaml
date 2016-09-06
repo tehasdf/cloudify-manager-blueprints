@@ -302,6 +302,32 @@ node_types:
             fabric_env:
               default: { get_attribute: [manager_host_configuration, fabric_env] }
 
+  manager.nodes.Keepalived:
+    derived_from: cloudify.nodes.SoftwareComponent
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/keepalived/scripts/create.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/keepalived/scripts/configure.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path:
+              default: components/keepalived/scripts/start.py
+            fabric_env:
+              default: { get_attribute: [manager_host_configuration, fabric_env] }
+
   manager.nodes.Syncthing:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:

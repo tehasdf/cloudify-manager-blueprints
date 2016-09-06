@@ -41,3 +41,7 @@ consul_cluster_config:
       user: vagrant
     private_ip: 10.0.1.27
     public_ip: 10.0.1.27
+
+rest_host_external_endpoint_type: public_ip
+rest_host_internal_endpoint_type: public_ip
+floating_ip: 10.0.1.55

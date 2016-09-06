@@ -11,7 +11,7 @@ import utils  # NOQA
 
 
 SYNCTHING_SERVICE_NAME = 'syncthing'
-ctx_properties = utils.ctx_factory.create(SYNCTHING_SERVICE_NAME)
+ctx_properties = utils.ctx_factory.get(SYNCTHING_SERVICE_NAME)
 
 utils.systemd.configure(SYNCTHING_SERVICE_NAME)
 utils.systemd.systemctl('daemon-reload')
