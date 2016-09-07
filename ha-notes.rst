@@ -119,16 +119,16 @@ Postgresql
 We use stolon (https://github.com/sorintlab/stolon) as the postgres clustering
 solution. Each node runs 3 components:
 
-	- the stolon sentinel - a daemon that uses consul to communicate with other
-	  instances of the sentinel, and checks if it needs to transition from
-	  replica to master
-	- stolon keeper: a wrapper that actually runs postgresql and listens
-	  for commands from the sentinel. Postgresql's builtin replication is used
-	  to copy data from master to the replicas (set up by stolon)
-	- stolon proxy - each machine runs a proxy service that connects to the
-	  current postgresql (ie. keeper) master. This means clients on every machine
-	  (ie. rest service) can just connect to the proxy on localhost, and the proxy
-	  will make sure they talk to the master
+- the stolon sentinel - a daemon that uses consul to communicate with other
+  instances of the sentinel, and checks if it needs to transition from
+  replica to master
+- stolon keeper: a wrapper that actually runs postgresql and listens
+  for commands from the sentinel. Postgresql's builtin replication is used
+  to copy data from master to the replicas (set up by stolon)
+- stolon proxy - each machine runs a proxy service that connects to the
+  current postgresql (ie. keeper) master. This means clients on every machine
+  (ie. rest service) can just connect to the proxy on localhost, and the proxy
+  will make sure they talk to the master
 
 Moving forward: the main problem with stolon is connection resets on master
 transition. We might consider using pgpool2 instead of the stolon proxy.
