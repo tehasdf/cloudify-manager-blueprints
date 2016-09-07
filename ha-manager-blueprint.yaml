@@ -113,20 +113,12 @@ node_types:
     properties:
       ip: {}
 
-######################################################################
-# These nodes comprise the manager's infrastructure and components
-######################################################################
 node_templates:
-  floating_ip:
-    type: FloatingIP
-    properties:
-      ip: { get_input: floating_ip }
-
+  # Additional consul machine
   consul_cluster_configuration:
     type: cloudify.nodes.Cluster
     properties:
       cluster_config: { get_input: consul_cluster_config }
-
 
   consul_host_configuration:
     type: cloudify.nodes.Root
@@ -167,6 +159,12 @@ node_templates:
             script_path: components/consul/scripts/start.py
             fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
 
+  # Cluster-wide nodes, not replicated
+  floating_ip:
+    type: FloatingIP
+    properties:
+      ip: { get_input: floating_ip }
+
   cluster_configuration:
     type: cloudify.nodes.Cluster
     properties:
@@ -175,6 +173,7 @@ node_templates:
       - type: manager_cluster_to_consul_cluster
         target: consul_cluster_configuration
 
+  # Manager nodes, replicated
   manager_host_configuration:
     type: cloudify.nodes.Root
     relationships:

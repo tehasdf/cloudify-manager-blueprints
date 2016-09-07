@@ -247,8 +247,8 @@ node_types:
   manager.nodes.Consul:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:
-      consul_binary_url:
-        default: https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
+      consul_package_url:
+        default: { get_input: consul_package_url }
     interfaces:
       cloudify.interfaces.lifecycle:
         create:

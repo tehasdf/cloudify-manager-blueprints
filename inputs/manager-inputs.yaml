@@ -214,8 +214,9 @@ inputs:
   confd_package_url:
     type: string
 
-  etcd_package_url:
+  consul_package_url:
     type: string
+    default: https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
 
   syncthing_package_url:
     type: string
