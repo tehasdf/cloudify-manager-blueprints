@@ -27,12 +27,18 @@ manager_cluster_config:
       user: vagrant
     private_ip: 10.0.1.25
     public_ip: 10.0.1.25
+    keepalived:
+      priority: 150
+      state: MASTER
   - fabric_env:
       host_string: 10.0.1.26
       key_filename: /home/lukasz/projects/cli_work/vm3/.vagrant/machines/default/virtualbox/private_key
       user: vagrant
     private_ip: 10.0.1.26
     public_ip: 10.0.1.26
+    keepalived:
+      priority: 100
+      state: BACKUP
 
 consul_cluster_config:
   - fabric_env:
