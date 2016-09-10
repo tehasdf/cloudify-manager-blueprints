@@ -249,6 +249,9 @@ node_types:
     properties:
       consul_package_url:
         default: { get_input: consul_package_url }
+      raft_multiplier:
+        type: integer
+        default: 5
     interfaces:
       cloudify.interfaces.lifecycle:
         create:

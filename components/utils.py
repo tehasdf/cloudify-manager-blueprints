@@ -179,8 +179,7 @@ def remove(path, ignore_failure=False):
 
 def rabbitmqctl(cmd, **kwargs):
     return sudo([
-        'rabbitmqctl',
-        '-n', 'rabbit@{0}'.format(ctx.instance.id)
+        'rabbitmqctl'
     ] + cmd, **kwargs)
 
 

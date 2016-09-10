@@ -21,6 +21,7 @@ def install_consul():
                                          CONSUL_SERVICE_NAME)
     utils.sudo(['unzip', consul_package, '-d', '/opt/cloudify/consul'])
     ctx.logger.info('done')
+    utils.mkdir('/etc/consul.d')
 
 
 install_consul()

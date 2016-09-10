@@ -46,11 +46,17 @@ inputs:
     default: ''
     type: string
 
-  consul_cluster_config: {}
   manager_cluster_config: {}
 
   floating_ip:
     type: string
+
+  consul_bootstrap:
+    type: boolean
+    default: true
+
+  consul_join:
+    default: ''
 
   #############################
   # Upload Resources Inputs
@@ -103,6 +109,11 @@ node_types:
     derived_from: cloudify.nodes.Root
     properties:
       cluster_config: {}
+      consul_bootstrap:
+        type: boolean
+        default: { get_input: consul_bootstrap }
+      consul_join:
+        default: { get_input: consul_join }
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -114,51 +125,6 @@ node_types:
       ip: {}
 
 node_templates:
-  # Additional consul machine
-  consul_cluster_configuration:
-    type: cloudify.nodes.Cluster
-    properties:
-      cluster_config: { get_input: consul_cluster_config }
-
-  consul_host_configuration:
-    type: cloudify.nodes.Root
-    relationships:
-      - type: manager_host_config_from_cluster_config
-        target: consul_cluster_configuration
-
-  consul_host:
-    type: cloudify.nodes.ManagerHost
-    properties:
-      install_agent: false
-    relationships:
-      - type: manager_host_from_config
-        target: consul_host_configuration
-
-  additional_consul:
-    type: manager.nodes.Consul
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: consul_host
-      - type: consul_in_cluster
-        target: consul_cluster_configuration
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: fabric.fabric_plugin.tasks.run_script
-          inputs:
-            script_path: components/consul/scripts/create.py
-            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
-        configure:
-          implementation: fabric.fabric_plugin.tasks.run_script
-          inputs:
-            script_path: components/consul/scripts/configure.py
-            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
-        start:
-          implementation: fabric.fabric_plugin.tasks.run_script
-          inputs:
-            script_path: components/consul/scripts/start.py
-            fabric_env: { get_attribute: [consul_host_configuration, fabric_env] }
-
   # Cluster-wide nodes, not replicated
   floating_ip:
     type: FloatingIP
@@ -169,9 +135,6 @@ node_templates:
     type: cloudify.nodes.Cluster
     properties:
       cluster_config: { get_input: manager_cluster_config }
-    relationships:
-      - type: manager_cluster_to_consul_cluster
-        target: consul_cluster_configuration
 
   # Manager nodes, replicated
   manager_host_configuration:
@@ -424,13 +387,6 @@ relationships:
         preconfigure:
           implementation: ha.ha.tasks.manager_host_from_config
 
-  manager_cluster_to_consul_cluster:
-    derived_from: cloudify.relationships.connected_to
-    source_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        preconfigure:
-          implementation: ha.ha.tasks.manager_cluster_to_consul_cluster
-
   set_floating_ip:
     derived_from: cloudify.relationships.connected_to
     source_interfaces:
@@ -464,23 +420,12 @@ groups:
       - nginx
       - mgmt_worker
 
-  manager_consul_cluster:
-    members:
-      - consul_host_configuration
-      - consul_host
-      - additional_consul
-
 policies:
   scale_policy1:
     type: cloudify.policies.scaling
     properties:
-      default_instances: 2
-    targets: [cloudify_manager]
-  scale_policy2:
-    type: cloudify.policies.scaling
-    properties:
       default_instances: 1
-    targets: [manager_consul_cluster]
+    targets: [cloudify_manager]
 
 outputs:
   manager_ip:
