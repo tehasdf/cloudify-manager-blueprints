@@ -1,24 +1,8 @@
 
 def prepare_cluster_configuration(ctx):
-    cluster_config = ctx.node.properties['cluster_config']
-    ctx.instance.runtime_properties['manager_ips'] = \
-        [h['public_ip'] for h in cluster_config]
-    ctx.instance.runtime_properties['cluster_config'] = cluster_config
-
-
-def manager_cluster_to_consul_cluster(ctx):
-    consul_cluster = ctx.source.node.properties['cluster_config'] + \
-        ctx.target.node.properties['cluster_config']
-    cluster_size = len(consul_cluster)
-
-    ctx.target.instance.runtime_properties['consul_cluster'] = {
-        'hosts': [h['public_ip'] for h in consul_cluster],
-        'expect': cluster_size
-    }
-    ctx.source.instance.runtime_properties['consul_cluster'] = {
-        'hosts': [h['public_ip'] for h in consul_cluster],
-        'expect': cluster_size
-    }
+    for property_name in ['cluster_config', 'consul_bootstrap', 'consul_join']:
+        ctx.instance.runtime_properties[property_name] = \
+            ctx.node.properties[property_name]
 
 
 def manager_host_config_from_cluster_config(ctx):
@@ -30,8 +14,18 @@ def manager_host_config_from_cluster_config(ctx):
 
 
 def consul_in_cluster(ctx):
-    ctx.source.instance.runtime_properties['consul_cluster'] = \
-        ctx.target.instance.runtime_properties['consul_cluster']
+    consul_props = ctx.source.instance.runtime_properties
+    cluster_props = ctx.target.instance.runtime_properties
+
+    if cluster_props['consul_bootstrap']:
+        consul_props['bootstrap'] = True
+        consul_props['join'] = []
+        cluster_props['consul_bootstrap'] = False
+    else:
+        consul_props['join'] = cluster_props['consul_join']
+
+    cluster_props['consul_join'] = cluster_props['consul_join'] + \
+        [ctx.source.instance.host_ip]
 
 
 def manager_host_from_config(ctx):

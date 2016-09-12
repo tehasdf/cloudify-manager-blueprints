@@ -1,5 +1,5 @@
-public_ip: 10.0.1.25
-private_ip: 10.0.1.25
+public_ip: 10.0.1.26
+private_ip: 10.0.1.26
 ssh_user: centos
 ssh_key_filename: /home/lukasz/projects/cli_work/vm4/.vagrant/machines/default/virtualbox/private_key
 ignore_bootstrap_validations: true
@@ -22,15 +22,17 @@ syncthing_package_url: https://github.com/syncthing/syncthing/releases/download/
 
 manager_cluster_config:
   - fabric_env:
-      host_string: 10.0.1.25
-      key_filename: /home/lukasz/projects/cli_work/vm/.vagrant/machines/default/virtualbox/private_key
+      host_string: 10.0.1.26
+      key_filename: /home/lukasz/projects/cli_work/vm3/.vagrant/machines/default/virtualbox/private_key
       user: vagrant
-    private_ip: 10.0.1.25
-    public_ip: 10.0.1.25
+    private_ip: 10.0.1.26
+    public_ip: 10.0.1.26
     keepalived:
-      priority: 150
-      state: MASTER
+      priority: 100
+      state: BACKUP
 
 rest_host_external_endpoint_type: public_ip
 rest_host_internal_endpoint_type: public_ip
 floating_ip: 10.0.1.55
+consul_join: [10.0.1.25]
+consul_bootstrap: false

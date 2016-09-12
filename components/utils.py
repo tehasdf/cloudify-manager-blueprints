@@ -1005,7 +1005,6 @@ class BlueprintResourceFactory(object):
         context of the script.
         :return: The local resource file path and destination.
         """
-        ctx.logger.info('create')
         resource_name = os.path.basename(destination)
         if is_upgrade:
             self._archive_resources(service_name)
@@ -1018,16 +1017,13 @@ class BlueprintResourceFactory(object):
                 return None, None
 
         # The local path is decided according to whether we are in upgrade
-        ctx.logger.info('get local')
         local_resource_path = self._get_local_file_path(service_name,
                                                         resource_name)
 
         if self._is_download_required(local_resource_path, render):
-            ctx.logger.info('is required')
             mkdir(os.path.dirname(local_resource_path))
 
             if user_resource:
-                ctx.logger.info('user')
                 self._download_user_resource(source,
                                              local_resource_path,
                                              resource_name,
@@ -1035,24 +1031,20 @@ class BlueprintResourceFactory(object):
                                              render=render,
                                              load_ctx=load_ctx)
             elif source_resource:
-                ctx.logger.info('source')
                 self._download_source_resource(source,
                                                local_resource_path)
             elif render:
-                ctx.logger.info('render')
                 self._download_resource_and_render(source,
                                                    local_resource_path,
                                                    service_name,
                                                    load_ctx)
             else:
-                ctx.logger.info('dl')
                 self._download_resource(source, local_resource_path)
             resources_props = self._get_resources_json(service_name)
             # update the resources.json
             if resource_name not in resources_props.keys():
                 resources_props[resource_name] = destination
                 self._set_resources_json(resources_props, service_name)
-        ctx.logger.info('ret')
         return local_resource_path, destination
 
     @staticmethod
