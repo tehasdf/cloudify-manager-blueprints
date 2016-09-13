@@ -51,12 +51,12 @@ inputs:
   floating_ip:
     type: string
 
+  consul_join:
+    default: []
+
   consul_bootstrap:
     type: boolean
     default: true
-
-  consul_join:
-    default: ''
 
   #############################
   # Upload Resources Inputs
@@ -110,7 +110,6 @@ node_types:
     properties:
       cluster_config: {}
       consul_bootstrap:
-        type: boolean
         default: { get_input: consul_bootstrap }
       consul_join:
         default: { get_input: consul_join }
