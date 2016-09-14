@@ -1,7 +1,7 @@
 public_ip: 10.0.1.26
 private_ip: 10.0.1.26
 ssh_user: centos
-ssh_key_filename: /home/lukasz/projects/cli_work/vm4/.vagrant/machines/default/virtualbox/private_key
+ssh_key_filename: /home/lukasz/projects/cli_work/vm3/.vagrant/machines/default/virtualbox/private_key
 ignore_bootstrap_validations: true
 install_python_compilers: true
 

@@ -1,7 +1,7 @@
 public_ip: 10.0.1.25
 private_ip: 10.0.1.25
-ssh_user: centos
-ssh_key_filename: /home/lukasz/projects/cli_work/vm4/.vagrant/machines/default/virtualbox/private_key
+ssh_user: vagrant
+ssh_key_filename: /home/lukasz/projects/cli_work/vm/.vagrant/machines/default/virtualbox/private_key
 ignore_bootstrap_validations: true
 install_python_compilers: true
 
@@ -30,6 +30,7 @@ manager_cluster_config:
     keepalived:
       priority: 150
       state: MASTER
+      interface: eth0
 
 rest_host_external_endpoint_type: public_ip
 rest_host_internal_endpoint_type: public_ip

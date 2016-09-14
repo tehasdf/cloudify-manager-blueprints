@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import json
+import tempfile
 from os.path import join, dirname
 
 from cloudify import ctx
@@ -79,7 +81,39 @@ def preconfigure_nginx():
         '/etc/nginx/conf.d/logs-conf.cloudify',
         NGINX_SERVICE_NAME, load_ctx=False)
 
+    utils.deploy_blueprint_resource(
+        '{0}/rest_handler.py'.format(CONFIG_PATH),
+        '/opt/cloudify/consul/rest_handler.py',
+        NGINX_SERVICE_NAME, load_ctx=False)
+    utils.chmod('a+x', '/opt/cloudify/consul/rest_handler.py')
     utils.systemd.enable(NGINX_SERVICE_NAME,
                          append_prefix=False)
+
+    consul_rest_config = {
+        'service': {
+            'name': 'rest',
+            'tags': ['rest'],
+            'address': '127.0.0.1',
+            'port': 8100,
+            'checks': [
+                {
+                    'id': 'rest-check-1',
+                    'http': 'http://127.0.0.1:8100/api/v2/blueprints',
+                    'interval': '10s'
+                }
+            ]
+        },
+        'watches': [
+            {
+                'type': 'service',
+                'service': 'rest',
+                'handler': '/opt/cloudify/consul/rest_handler.py'
+            }
+        ]
+    }
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        json.dump(consul_rest_config, f)
+    utils.move(f.name, '/etc/consul.d/rest.json')
+
 
 preconfigure_nginx()
