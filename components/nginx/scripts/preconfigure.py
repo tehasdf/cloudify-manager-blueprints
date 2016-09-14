@@ -114,6 +114,7 @@ def preconfigure_nginx():
     with tempfile.NamedTemporaryFile(delete=False) as f:
         json.dump(consul_rest_config, f)
     utils.move(f.name, '/etc/consul.d/rest.json')
+    utils.systemd.kill('consul', signal='HUP')
 
 
 preconfigure_nginx()

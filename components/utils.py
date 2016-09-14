@@ -643,6 +643,15 @@ class SystemD(object):
         else:
             raise RuntimeError('{0} is not running'.format(service_name))
 
+    def kill(self, service_name, signal=None, append_prefix=True):
+        full_service_name = self._get_full_service_name(service_name,
+                                                        append_prefix)
+        cmd = ['systemctl', 'kill']
+        if signal is not None:
+            cmd.extend(['-s', signal])
+        cmd.append(full_service_name)
+        return sudo(cmd)
+
     @staticmethod
     def _get_full_service_name(service_name, append_prefix):
         if append_prefix:
