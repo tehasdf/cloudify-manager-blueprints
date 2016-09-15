@@ -5,19 +5,22 @@ client_max_body_size 0m;
 types_hash_max_size 4096;
 
 # Upstream for Cloudify's Rest Service.
+<% if rest_services %>
 upstream cloudify-rest {
-  server 127.0.0.1:8100;
+    <% for rest_service in rest_services -%>
+        server << rest_service.ip >>:<< rest_service.port >>;
+    <% endfor %>
 }
+<% endif %>
 
-# Upstream for Cloudify's File Server. Since Nginx is serving the fileserver by itself, it's always localhost.
-# This is strictly an implementation detail. The fileserver can sit anywhere else.
+<% if fileservers %>
 upstream cloudify-resources {
-  server 127.0.0.1:53229;
+    <% for fileserver in fileservers -%>
+        server << fileserver.ip >>:53229;
+    <% endfor %>
 }
+<% endif %>
 
-# REST and UI server.
 # XXX rest_protocol from runtime props
 include "/etc/nginx/conf.d/http-rest-server.cloudify";
-
-# File server. Currently, as Nginx also hosts the fileserver locally, it points at a local path.
 include "/etc/nginx/conf.d/http-file-server.cloudify";

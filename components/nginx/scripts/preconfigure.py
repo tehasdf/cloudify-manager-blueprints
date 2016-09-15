@@ -88,12 +88,18 @@ def preconfigure_nginx():
     utils.chmod('a+x', '/opt/cloudify/consul/rest_handler.py')
     utils.systemd.enable(NGINX_SERVICE_NAME,
                          append_prefix=False)
+    utils.deploy_blueprint_resource(
+        '{0}/default.conf.tmpl'.format(CONFIG_PATH),
+        '/opt/cloudify/consul/nginx.tmpl',
+        NGINX_SERVICE_NAME, load_ctx=False
+    )
 
+    # XXX probably move this out
     consul_rest_config = {
         'service': {
             'name': 'rest',
             'tags': ['rest'],
-            'address': '127.0.0.1',
+            'address': ctx.source.instance.host_ip,
             'port': 8100,
             'checks': [
                 {

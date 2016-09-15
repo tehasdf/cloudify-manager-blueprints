@@ -30,6 +30,7 @@ manager_cluster_config:
     keepalived:
       priority: 100
       state: BACKUP
+      interface: eth0
 
 rest_host_external_endpoint_type: public_ip
 rest_host_internal_endpoint_type: public_ip
