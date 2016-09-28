@@ -177,14 +177,13 @@ def configure_pg():
         else:
             raise
     else:
-        data = json.load(resp)
+        data = _parse_consul_response(json.load(resp))
 
     _common_pg_config(data)
     if not data['master']:
         setup_master()
     else:
-        cluster_desc = _parse_consul_response(data)
-        setup_replica(cluster_desc)
+        setup_replica(data)
 
 
 def add_consul_watch():
