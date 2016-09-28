@@ -586,6 +586,8 @@ node_templates:
         target: manager_host
       - type: cloudify.relationships.depends_on
         target: manager_resources
+      - type: cloudify.relationships.depends_on
+        target: consul
 
   logstash:
     type: manager.nodes.Logstash
