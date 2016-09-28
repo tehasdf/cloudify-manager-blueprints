@@ -157,7 +157,7 @@ def _parse_consul_response(data):
         'master': None
     }
     for elem in data:
-        value = json.loads(data['Value'].decode('base64'))
+        value = json.loads(elem['Value'].decode('base64'))
         if elem['key'].startswith('pg/nodes'):
             desc['nodes'].append(value)
         elif elem['key'].startswith('pg/master'):
