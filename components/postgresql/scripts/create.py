@@ -48,8 +48,7 @@ def _install_postgresql():
 
 def _prepare_data_dir():
     utils.mkdir(ctx_properties['data_dir'])
-    utils.chown(ctx_properties['user'], ctx_properties['user'],
-                ctx_properties['data_dir'])
+    utils.chown('postgres', 'postgres', ctx_properties['data_dir'])
 
 
 def main():
