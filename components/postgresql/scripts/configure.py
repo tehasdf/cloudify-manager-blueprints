@@ -180,7 +180,7 @@ def configure_pg():
         data = json.load(resp)
 
     _common_pg_config(data)
-    if data is None:
+    if not data['master']:
         setup_master()
     else:
         cluster_desc = _parse_consul_response(data)
