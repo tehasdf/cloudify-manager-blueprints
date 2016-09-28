@@ -44,7 +44,7 @@ def _prepare_postgresql_conf(data_dir):
     postgresql_config = _get_file_contents(postgresql_conf_path)
     with tempfile.NamedTemporaryFile(delete=False) as f:
         f.write(postgresql_config)
-        f.write("include 'postgresql.cluster.conf")
+        f.write("include 'postgresql.cluster.conf'")
 
     utils.move(f.name, postgresql_conf_path)
 
@@ -78,11 +78,10 @@ def _prepare_pg_hba(data_dir):
 
 
 def setup_master():
+    data_dir = ctx.node.properties['data_dir']
     ctx.instance.runtime_properties['initial_mode'] = 'master'
 
     data_dir = ctx.node.properties['data_dir']
-    utils.mkdir(data_dir)
-    utils.chown('postgres', 'postgres', data_dir)
     utils.run([
         'sudo', '-u', 'postgres',
         '/usr/pgsql-9.5/bin/initdb', '-D', data_dir
@@ -112,7 +111,7 @@ def setup_master():
 
     node_info = _node_info()
     utils.http_request(
-        'http://127.0.0.1/v1/kv/pg/master'.format(node_info['node_name']),
+        'http://127.0.0.1:8500/v1/kv/pg/master'.format(node_info['node_name']),
         data=json.dumps(node_info),
         method='PUT'
     )
@@ -122,8 +121,6 @@ def setup_replica(cluster_desc):
     ctx.instance.runtime_properties['initial_mode'] = 'replica'
 
     data_dir = ctx.node.properties['data_dir']
-    utils.mkdir(data_dir)
-    utils.chown('postgres', 'postgres', data_dir)
     master_addr = cluster_desc['master']['addr']
     utils.run([
         'sudo', '-u', 'postgres',
@@ -148,7 +145,7 @@ def _common_pg_config(cluster_desc):
     utils.systemd.systemctl('daemon-reload')
 
     utils.http_request(
-        'http://127.0.0.1/v1/kv/pg/nodes/{0}'.format(node_name),
+        'http://127.0.0.1:8500/v1/kv/pg/nodes/{0}'.format(node_name),
         data=json.dumps(_node_info()),
         method='PUT'
     )
