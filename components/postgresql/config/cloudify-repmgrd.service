@@ -1,0 +1,17 @@
+[Unit]
+Description=repmgrd
+After=syslog.target
+After=network.target
+
+[Service]
+User=postgres
+Group=postgres
+
+EnvironmentFile=-/etc/sysconfig/cloudify-repmgrd
+
+
+ExecStart=/usr/pgsql-9.5/bin/repmgrd -f /etc/repmgr.conf
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

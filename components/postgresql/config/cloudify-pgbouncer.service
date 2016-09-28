@@ -1,0 +1,19 @@
+[Unit]
+Description=pgbouncer
+After=syslog.target
+After=network.target
+
+[Service]
+User=postgres
+Group=postgres
+
+EnvironmentFile=-/etc/sysconfig/cloudify-pgbouncer
+
+
+ExecStart=/bin/pgbouncer /etc/pgbouncer/pgbouncer.init
+ExecReload=/bin/kill -HUP $MAINPID
+
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

@@ -483,20 +483,16 @@ node_types:
         description: postgresql default db name
         type: string
         default: { get_input: postgresql_db_name }
+      pool_mode:
+        description: pgbouncer pool mode
+        default: transaction
+      proxy_port:
+        description: pgbouncer port
+        default: 6432
       cluster_name:
-        description: stolon cluster name
+        description: cluster name
         type: string
-        default: stolon-cluster
-      pg_repl_username:
-        default: repluser
-      pg_repl_password:
-        default: replpassword
-      pg_su_password:
-        default: root
-      user:
-        default: postgres
-      port:
-        default: 25432
+        default: cloudify
       data_dir:
         default: /var/pgdata
       postgresql_host:

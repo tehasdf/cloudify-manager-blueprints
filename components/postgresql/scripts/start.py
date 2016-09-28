@@ -11,13 +11,13 @@ ctx.download_resource(
     join(dirname(__file__), 'utils.py'))
 import utils  # NOQA
 
-PS_SERVICE_NAME = 'postgresql-9.5'
+PS_SERVICE_NAME = 'postgresql'
 ctx_properties = utils.ctx_factory.get(PS_SERVICE_NAME)
 
 
 def _start_services():
 
-    for service_name in ['stolon-sentinel', 'stolon-keeper', 'stolon-proxy']:
+    for service_name in ['postgresql', 'pgbouncer', 'repmgrd']:
         ctx.logger.info('Starting {0}...'.format(service_name))
         utils.systemd.enable(service_name)
         utils.start_service(service_name)
@@ -60,7 +60,7 @@ def psql(cmd):
         'PGPASSWORD={0}'.format(ctx_properties['pg_su_password']),
         'psql',
         '--host', '127.0.0.1',
-        '--port', '25432',
+        '--port', '5432',
         '-U', 'postgres',
         '-c', cmd
     ], ignore_failures=True)
@@ -98,12 +98,20 @@ def main():
                                password='cloudify',
                                port=25432)
     _start_services()
-
-    # need to wait for the cluster to bootstrap and choose a master
     _check_postgresql_up()
-    _create_default_db(db_name=db_name,
-                       username='cloudify',
-                       password='cloudify')
+    if ctx.instance.runtime_properties['initial_mode'] == 'master':
+
+        _create_default_db(db_name=db_name,
+                           username='cloudify',
+                           password='cloudify')
+    elif ctx.instance.runtime_properties['initial_mode'] == 'replica':
+        utils.run([
+            'sudo', '-u', 'postgres',
+            '/usr/pgsql-9.5/bin/repmgr', '-f', '/etc/repmgr.conf', 'standby',
+            'register'
+        ])
+    else:
+        ctx.abort_operation('Unknown initial_mode: {0}'.format())
 
     if utils.is_upgrade or utils.is_rollback:
         # restore the 'provider_context' and 'snapshot' elements from file

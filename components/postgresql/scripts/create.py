@@ -7,7 +7,7 @@ ctx.download_resource(
     join(dirname(__file__), 'utils.py'))
 import utils  # NOQA
 
-PS_SERVICE_NAME = 'postgresql-9.5'
+PS_SERVICE_NAME = 'postgresql'
 ctx_properties = utils.ctx_factory.create(PS_SERVICE_NAME)
 
 
@@ -40,19 +40,10 @@ def _install_postgresql():
     ctx.logger.info('Installing python libs for PostgreSQL...')
     utils.yum_install(source=psycopg2_rpm_url, service_name=PS_SERVICE_NAME)
 
-
-def _install_stolon():
-    utils.yum_install('go', PS_SERVICE_NAME)
-    utils.yum_install('git', PS_SERVICE_NAME)
-
-    utils.sudo([
-        'git',
-        'clone',
-        'https://github.com/sorintlab/stolon',
-        '/opt/cloudify/stolon'
-    ])
-    ctx.logger.info('Building stolon')
-    utils.sudo(['/opt/cloudify/stolon/build'])
+    # XXX use yum install
+    utils.sudo('yum localinstall https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm')  # NOQA
+    utils.yum_install('repmgr95')
+    utils.yum_install('pgbouncer')
 
 
 def _prepare_data_dir():
@@ -64,7 +55,6 @@ def _prepare_data_dir():
 def main():
     _prepare_env()
     _install_postgresql()
-    _install_stolon()
     _prepare_data_dir()
 
 main()
