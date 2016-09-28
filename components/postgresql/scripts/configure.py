@@ -5,7 +5,7 @@ import json
 import urllib2
 import tempfile
 
-from os.path import join, dirname
+from os.path import join, dirname, exists
 
 from cloudify import ctx
 
@@ -82,10 +82,11 @@ def setup_master():
     ctx.instance.runtime_properties['initial_mode'] = 'master'
 
     data_dir = ctx.node.properties['data_dir']
-    utils.run([
-        'sudo', '-u', 'postgres',
-        '/usr/pgsql-9.5/bin/initdb', '-D', data_dir
-    ])
+    if not exists(join(data_dir, 'base')):
+        utils.run([
+            'sudo', '-u', 'postgres',
+            '/usr/pgsql-9.5/bin/initdb', '-D', data_dir
+        ])
 
     _prepare_postgresql_conf(data_dir)
     _prepare_pg_hba(data_dir)
@@ -158,9 +159,9 @@ def _parse_consul_response(data):
     }
     for elem in data:
         value = json.loads(elem['Value'].decode('base64'))
-        if elem['key'].startswith('pg/nodes'):
+        if elem['Key'].startswith('pg/nodes'):
             desc['nodes'].append(value)
-        elif elem['key'].startswith('pg/master'):
+        elif elem['Key'].startswith('pg/master'):
             desc['master'] = value
     return desc
 
