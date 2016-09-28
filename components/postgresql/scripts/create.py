@@ -42,8 +42,8 @@ def _install_postgresql():
 
     # XXX use yum install
     utils.sudo('yum localinstall -y https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm')  # NOQA
-    utils.yum_install('repmgr95')
-    utils.yum_install('pgbouncer')
+    utils.yum_install('repmgr95', service_name=PS_SERVICE_NAME)
+    utils.yum_install('pgbouncer', service_name=PS_SERVICE_NAME)
 
 
 def _prepare_data_dir():
