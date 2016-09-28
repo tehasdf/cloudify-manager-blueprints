@@ -41,7 +41,7 @@ def _install_postgresql():
     utils.yum_install(source=psycopg2_rpm_url, service_name=PS_SERVICE_NAME)
 
     # XXX use yum install
-    utils.sudo('yum localinstall https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm')  # NOQA
+    utils.sudo('yum localinstall -y https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm')  # NOQA
     utils.yum_install('repmgr95')
     utils.yum_install('pgbouncer')
 
