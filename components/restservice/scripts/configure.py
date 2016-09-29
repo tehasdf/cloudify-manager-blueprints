@@ -62,7 +62,8 @@ def _create_db_tables_and_add_users():
     args_dict = {
         'security_configuration': runtime_props['security_configuration'],
         'postgresql_db_name': runtime_props['postgresql_db_name'],
-        'postgresql_host': runtime_props['postgresql_host']
+        'postgresql_host': runtime_props['postgresql_host'],
+        'postgresql_port': runtime_props['postgresql_port'],
     }
     args_file_location = join(tempfile.gettempdir(),
                               'security_config.json')

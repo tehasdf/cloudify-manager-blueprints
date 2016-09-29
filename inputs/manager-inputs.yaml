@@ -445,7 +445,7 @@ inputs:
   postgresql_host:
     description: postgresql default host
     type: string
-    default: 'localhost:25432'
+    default: 'localhost'
 
 
   #############################

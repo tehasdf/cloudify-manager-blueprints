@@ -55,14 +55,9 @@ def _create_postgres_pass_file(host, db_name, username, password, port=5432):
 
 
 def psql(cmd):
-    return utils.sudo([
-        'env',
-        'PGPASSWORD={0}'.format(ctx_properties['pg_su_password']),
-        'psql',
-        '--host', '127.0.0.1',
-        '--port', '5432',
-        '-U', 'postgres',
-        '-c', cmd
+    return utils.run([
+        'sudo', '-u', 'postgres',
+        'psql', '-c', cmd
     ], ignore_failures=True)
 
 
@@ -96,7 +91,7 @@ def main():
                                db_name='*',
                                username='cloudify',
                                password='cloudify',
-                               port=25432)
+                               port=5432)
     _start_services()
     _check_postgresql_up()
     if ctx.instance.runtime_properties['initial_mode'] == 'master':
