@@ -10,7 +10,7 @@ Group=postgres
 EnvironmentFile=-/etc/sysconfig/cloudify-pgbouncer
 
 
-ExecStart=/bin/pgbouncer /etc/pgbouncer/pgbouncer.init
+ExecStart=/bin/pgbouncer /etc/pgbouncer/pgbouncer.ini
 ExecReload=/bin/kill -HUP $MAINPID
 
 TimeoutSec=300
