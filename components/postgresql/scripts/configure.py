@@ -47,6 +47,7 @@ def _prepare_postgresql_conf(data_dir):
         f.write("include 'postgresql.cluster.conf'")
 
     utils.move(f.name, postgresql_conf_path)
+    utils.chown('postgres', 'postgres', postgresql_conf_path)
 
     utils.deploy_blueprint_resource(
         'components/postgresql/config/postgresql.cluster.conf',
@@ -54,13 +55,16 @@ def _prepare_postgresql_conf(data_dir):
         PS_SERVICE_NAME,
         render=True
     )
-    utils.move('/tmp/postgresql.cluster.conf',
-               join(data_dir, 'postgresql.cluster.conf'))
+    cluster_conf_path = join(data_dir, 'postgresql.cluster.conf')
+    utils.move('/tmp/postgresql.cluster.conf', cluster_conf_path)
+    utils.chown('postgres', 'postgres', cluster_conf_path)
 
 
 def _prepare_pg_hba(data_dir):
     pg_hba_path = join(data_dir, 'pg_hba.conf')
     pg_hba_data = _get_file_contents(pg_hba_path)
+    local_cidr = ctx.instance.host_ip.rsplit('.', 1)[0] + '.0/24'
+    ctx.instance.runtime_properties['local_cidr'] = local_cidr
     utils.deploy_blueprint_resource(
         'components/postgresql/config/cluster_pg_hba.conf',
         '/tmp/cluster_pg_hba.conf',
@@ -75,6 +79,7 @@ def _prepare_pg_hba(data_dir):
         f.write(pg_hba_data)
 
     utils.move(f.name, pg_hba_path)
+    utils.chown('postgres', 'postgres', pg_hba_path)
 
 
 def setup_master():
@@ -208,6 +213,7 @@ def add_consul_watch():
 
 
 def configure_pgbouncer():
+    utils.ctx_factory.create('pgbouncer')
     utils.systemd.configure('pgbouncer')
     utils.systemd.systemctl('daemon-reload')
     utils.deploy_blueprint_resource(
@@ -223,12 +229,12 @@ def configure_pgbouncer():
         render=True
     )
     # XXX md5
-    utils.deploy_blueprint_resource(
-        'components/postgresql/config/userlist.txt',
-        '/etc/pgbouncer/userlist.txt',
-        PS_SERVICE_NAME,
-        render=True
-    )
+    userlist_path = '/etc/pgbouncer/userlist.txt'
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write('"cloudify" "cloudify"\n')
+    utils.move(f.name, userlist_path)
+    utils.chown('postgres', 'postgres', userlist_path)
+
     for path in ['/var/run/pgbouncer', '/var/log/pgbouncer']:
         utils.chown('postgres', 'postgres', path)
 
@@ -244,9 +250,13 @@ def configure_repmgr():
     )
     utils.chmod('+x', '/opt/cloudify/postgresql/promote.py')
     # used in promote.py
-    with open('/opt/cloudify/postgresql/node_info.json', 'w') as f:
+    with tempfile.NamedTemporaryFile(delete=False) as f:
         json.dump(_node_info(), f)
+    node_info_path = '/opt/cloudify/postgresql/node_info.json'
+    utils.move(f.name, node_info_path)
+    utils.chown('postgres', 'postgres', node_info_path)
 
+    utils.ctx_factory.create('repmgrd')
     utils.systemd.configure('repmgrd')
     utils.systemd.systemctl('daemon-reload')
 
