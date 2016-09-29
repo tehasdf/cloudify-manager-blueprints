@@ -204,7 +204,7 @@ def add_consul_watch():
     utils.move(f.name, '/etc/consul.d/pgbouncer.json')
 
     utils.deploy_blueprint_resource(
-        'components/postgresql/config/pgbouncer.ini',
+        'components/postgresql/config/rerender.py',
         '/opt/cloudify/postgresql/rerender.py',
         PS_SERVICE_NAME,
         render=True
