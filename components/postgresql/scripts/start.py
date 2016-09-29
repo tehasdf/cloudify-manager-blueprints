@@ -15,9 +15,8 @@ PS_SERVICE_NAME = 'postgresql'
 ctx_properties = utils.ctx_factory.get(PS_SERVICE_NAME)
 
 
-def _start_services():
-
-    for service_name in ['postgresql', 'pgbouncer', 'repmgrd']:
+def _start_services(services):
+    for service_name in services:
         ctx.logger.info('Starting {0}...'.format(service_name))
         utils.systemd.enable(service_name)
         utils.start_service(service_name)
@@ -92,7 +91,7 @@ def main():
                                username='cloudify',
                                password='cloudify',
                                port=5432)
-    _start_services()
+    _start_services(['postgresql'])
     _check_postgresql_up()
     if ctx.instance.runtime_properties['initial_mode'] == 'master':
 
@@ -107,6 +106,7 @@ def main():
         ])
     else:
         ctx.abort_operation('Unknown initial_mode: {0}'.format())
+    _start_services(['pgbouncer', 'repmgrd'])
 
     if utils.is_upgrade or utils.is_rollback:
         # restore the 'provider_context' and 'snapshot' elements from file
