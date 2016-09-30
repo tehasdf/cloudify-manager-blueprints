@@ -44,7 +44,7 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
     json.dump(consul_syncthing_config, f)
 
 utils.move(f.name, '/etc/consul.d/syncthing.json')
-utils.systemd.restart('consul')
+utils.systemd.systemctl('reload', 'consul')
 
 # XXX
 utils.sudo('chmod a+rX -R /root')
