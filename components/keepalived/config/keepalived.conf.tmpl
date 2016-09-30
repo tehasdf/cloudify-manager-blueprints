@@ -11,6 +11,8 @@ global_defs {
 }
 
 vrrp_instance VI_1 {
+        notify /opt/cloudify/keepalived/notify.py
+
         state {{ ctx.instance.runtime_properties.state }}
         interface {{ ctx.node.properties.keepalived_interface }}
         lvs_sync_daemon_interface {{ ctx.node.properties.keepalived_interface }}

@@ -15,15 +15,6 @@ import utils  # NOQA
 KEEPALIVED_SERVICE_NAME = 'keepalived'
 ctx_properties = utils.ctx_factory.get(KEEPALIVED_SERVICE_NAME)
 
-utils.systemd.configure(KEEPALIVED_SERVICE_NAME)
-utils.systemd.systemctl('daemon-reload')
-
-utils.deploy_blueprint_resource(
-    'components/keepalived/config/keepalived.conf.tmpl',
-    '/etc/keepalived/keepalived.conf',
-    KEEPALIVED_SERVICE_NAME
-)
-
 
 def _parse_consul_response(data):
     desc = {
@@ -43,7 +34,7 @@ def _register_node(state, priority):
     utils.http_request(
         'http://127.0.0.1:8500/v1/kv/keepalived/nodes/{0}'.format(
             ctx.instance.id),
-        data=json.dumps({'priority': priority, 'initial_state': state}),
+        data=json.dumps({'priority': priority, 'state': state}),
         method='PUT'
     )
 
@@ -91,4 +82,20 @@ def configure_keepalived():
     ctx.instance.runtime_properties['virtualip'] = virtualip
     ctx.instance.runtime_properties['priority'] = priority
 
+    utils.deploy_blueprint_resource(
+        'components/keepalived/config/keepalived.conf.tmpl',
+        '/etc/keepalived/keepalived.conf',
+        KEEPALIVED_SERVICE_NAME
+    )
+    notify_path = '/opt/cloudify/keepalived/notify.py'
+    utils.deploy_blueprint_resource(
+        'components/keepalived/config/notify.py',
+        notify_path,
+        KEEPALIVED_SERVICE_NAME
+    )
+    utils.chmod('+x', notify_path)
+
+
 configure_keepalived()
+utils.systemd.configure(KEEPALIVED_SERVICE_NAME)
+utils.systemd.systemctl('daemon-reload')
