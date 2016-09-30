@@ -234,17 +234,9 @@ inputs:
     type: string
     default: ''
 
-  keepalived_state:
-    type: string
-    default: MASTER
-
   keepalived_interface:
     type: string
     default: eth0
-
-  keepalived_priority:
-    type: integer
-    default: 100
 
   #############################
   # Consul Inputs

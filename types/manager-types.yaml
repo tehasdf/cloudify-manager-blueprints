@@ -258,14 +258,10 @@ node_types:
   manager.nodes.Keepalived:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:
-      keepalived_state:
-        default: { get_input: keepalived_state }
       keepalived_floating_ip:
         default: { get_input: keepalived_floating_ip }
       keepalived_interface:
         default: { get_input: keepalived_interface }
-      keepalived_priority:
-        default: { get_input: keepalived_priority }
     interfaces:
       cloudify.interfaces.lifecycle:
         create:

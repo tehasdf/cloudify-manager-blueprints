@@ -316,7 +316,7 @@ node_templates:
               implementation: components/manager/scripts/set_manager_ips.py
               inputs:
                 public_ip: { get_attribute: [manager_server_ip, floating_ip_address] }
-                floating_ip: { get_property: [keepalived, keepalived_floating_ip]}
+                floating_ip: { get_property: [floating_port, fixed_ip] }
                 rest_host_internal_endpoint_type: { get_property: [rest_service, rest_host_internal_endpoint_type] }
                 rest_host_external_endpoint_type: { get_property: [rest_service, rest_host_external_endpoint_type] }
       - type: cloudify.relationships.depends_on
@@ -533,6 +533,12 @@ node_templates:
   ######################################################################
   # These are the nodes comprising the Cloudify Manager's components
   ######################################################################
+  consul:
+    type: manager.nodes.Consul
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: manager_host
+
   keepalived:
     type: manager.nodes.Keepalived
     properties:
@@ -542,12 +548,8 @@ node_templates:
         target: manager_host
       - type: cloudify.relationships.depends_on
         target: manager_configuration
-
-  consul:
-    type: manager.nodes.Consul
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: manager_host
+      - type: cloudify.relationships.depends_on
+        target: consul
 
   rabbitmq:
     type: manager.nodes.RabbitMQ
