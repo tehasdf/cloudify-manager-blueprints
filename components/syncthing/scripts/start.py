@@ -59,15 +59,13 @@ def json_request(url, data=None, method='GET'):
     resp = urllib2.urlopen(req)
     return json.load(resp)
 
-
 status = json_request('http://127.0.0.1:8384/rest/system/status')
 my_id = status['myID']
 
-utils.run([
-    'curl',
-    '-XPUT',
-    '-d',
-    '{0},tcp://{1},{2}'.format(my_id, ctx.instance.host_ip, ctx.instance.id),
-    'http://127.0.0.1:8500/v1/kv/syncthing/{1}'.format(
-        ctx.instance.host_ip, ctx.instance.id),
-])
+
+utils.http_request(
+    'http://127.0.0.1:8500/v1/kv/syncthing/{0}'.format(ctx.instance.id),
+    data='{0},tcp://{1},{2}'.format(
+        my_id, ctx.instance.host_ip, ctx.instance.id),
+    method='PUT'
+)
