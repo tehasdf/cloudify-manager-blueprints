@@ -3,32 +3,32 @@ Cloudify HA Manager
 
 The main ideas behind the HA design are:
 
-    - a cluster is created (usually 3 or 5 machines) by bootstrapping a master
-      manager, and then bootstrapping several replica managers, passing to each
-      the IP of any of the machines in the cluster
-    - all configuration is done using consul. Ideally, address of a consul
-      instance belonging to the cluster is all that is needed to join the cluster
-    - outside communication is managed using keepalived and a LVS virtual IP.
-      This means the cluster advertises a virtual IP that points to the current
-      "active" manager; agents and the CLI must use the virtual IP to communicate
-      with the manager. If the active manager goes down, the virtual IP will be
-      taken over by a replica.
-    - note that replicas work in "hot standby" mode - they can be used at any
-      time, and will proxy write requests to the current master. This will never
-      happen with the current implementation, as only the master is accessible
-      from outside (via the virtual ip), but would allow load-balancing requests
-      in the future
-    - postgresql and the fileserver are services that keep state that must be
-      replicated across all nodes in the cluster. Rabbitmq and elasticsearch
-      are NOT replicated
-    - currently it's not strictly enforced that the machine holding the virtual
-      IP is also the database master server (keepalived and repmgr use the
-      same mechanism to determine priority, so this should actually always be
-      the case, but nothing is done to ensure it). In the future we can add
-      scripts that enforce this constraint, or actually do the opposite: allow
-      configuring the cluster so that eg. a machine with the fastest CPU
-      holds the virtual IP (ie. will handle HTTP requests and run operations),
-      while the machine with the fastest disk is the database master.
+- a cluster is created (usually 3 or 5 machines) by bootstrapping a master
+  manager, and then bootstrapping several replica managers, passing to each
+  the IP of any of the machines in the cluster
+- all configuration is done using consul. Ideally, address of a consul
+  instance belonging to the cluster is all that is needed to join the cluster
+- outside communication is managed using keepalived and a LVS virtual IP.
+  This means the cluster advertises a virtual IP that points to the current
+  "active" manager; agents and the CLI must use the virtual IP to communicate
+  with the manager. If the active manager goes down, the virtual IP will be
+  taken over by a replica.
+- note that replicas work in "hot standby" mode - they can be used at any
+  time, and will proxy write requests to the current master. This will never
+  happen with the current implementation, as only the master is accessible
+  from outside (via the virtual ip), but would allow load-balancing requests
+  in the future
+- postgresql and the fileserver are services that keep state that must be
+  replicated across all nodes in the cluster. Rabbitmq and elasticsearch
+  are NOT replicated
+- currently it's not strictly enforced that the machine holding the virtual
+  IP is also the database master server (keepalived and repmgr use the
+  same mechanism to determine priority, so this should actually always be
+  the case, but nothing is done to ensure it). In the future we can add
+  scripts that enforce this constraint, or actually do the opposite: allow
+  configuring the cluster so that eg. a machine with the fastest CPU
+  holds the virtual IP (ie. will handle HTTP requests and run operations),
+  while the machine with the fastest disk is the database master.
 
 
 Components
@@ -132,10 +132,10 @@ in configured directories to all the other machines.
 
 Currently, the following directories are replicated:
 
-    - `/opt/manager/resources` - holds the blueprints uploaded by the user
-    - `/opt/mgmtworker/env/plugins` - holds plugins installed on the manager.
-      This is required so that doing `cfy plugins upload` will install the plugin
-      on all machines in the cluster.
+- `/opt/manager/resources` - holds the blueprints uploaded by the user
+- `/opt/mgmtworker/env/plugins` - holds plugins installed on the manager.
+  This is required so that doing `cfy plugins upload` will install the plugin
+  on all machines in the cluster.
 
 .. warning:: Asynchronous replication
 
