@@ -14,4 +14,3 @@ SYNCTHING_SERVICE_NAME = 'syncthing'
 ctx_properties = utils.ctx_factory.get(SYNCTHING_SERVICE_NAME)
 
 utils.systemd.configure(SYNCTHING_SERVICE_NAME)
-utils.systemd.systemctl('daemon-reload')

@@ -9,18 +9,25 @@ from cloudify import ctx
 ctx.download_resource(
     join('components', 'utils.py'),
     join(dirname(__file__), 'utils.py'))
+ctx.download_resource(
+    join('components', 'utils_ha.py'),
+    join(dirname(__file__), 'utils_ha.py'))
 import utils  # NOQA
+import utils_ha  # NOQA
+
 
 PS_SERVICE_NAME = 'postgresql'
+REPMGRD_SERVICE_NAME = 'repmgrd'
+PGBOUNCER_SERVICE_NAME = 'pgbouncer'
+
 ctx_properties = utils.ctx_factory.get(PS_SERVICE_NAME)
 
 
 def _start_services(services):
     for service_name in services:
         ctx.logger.info('Starting {0}...'.format(service_name))
-        utils.systemd.enable(service_name)
         utils.start_service(service_name)
-        utils.systemd.verify_alive(service_name)
+        utils.systemd.enable(service_name)
 
 
 def _create_postgres_pass_file(host, db_name, username, password, port=5432):
@@ -53,32 +60,26 @@ def _create_postgres_pass_file(host, db_name, username, password, port=5432):
             pgpass_path))
 
 
-def psql(cmd):
-    return utils.run([
-        'sudo', '-u', 'postgres',
-        'psql', '-c', cmd
-    ], ignore_failures=True)
-
-
 def _create_default_db(db_name, username, password):
     # XXX use psycopg2, since we're installing it anyway?
-    user_exists = psql(
+    user_exists = utils_ha.psql(
         "select 'exists' from pg_user where usename='{0}';".format(username)
     )
     if 'exists' not in user_exists.aggr_stdout:
-        psql("create user {0} with password '{1}' login createdb;"
-             .format(username, password))
+        utils_ha.psql("create user {0} with password '{1}' login createdb;"
+                      .format(username, password))
 
-    db_exists = psql(
+    db_exists = utils_ha.psql(
         "select 'exists' from pg_database where datname='{0}';".format(db_name)
     )
     if 'exists' not in db_exists.aggr_stdout:
-        psql('create database {0} with owner {1};'.format(db_name, username))
+        utils_ha.psql('create database {0} with owner {1};'
+                      .format(db_name, username))
 
 
 @utils.retry(RuntimeError, tries=20)
 def _check_postgresql_up():
-    ret = psql('select 1;')
+    ret = utils_ha.psql('select 1;')
     if ret.returncode != 0:
         raise RuntimeError('pg not running')
 
@@ -91,22 +92,21 @@ def main():
                                username='cloudify',
                                password='cloudify',
                                port=5432)
-    _start_services(['postgresql'])
+    _start_services([PS_SERVICE_NAME])
     _check_postgresql_up()
-    if ctx.instance.runtime_properties['initial_mode'] == 'master':
 
+    if ctx.instance.runtime_properties['initial_mode'] == 'master':
+        ctx.logger.info('Running database as master')
         _create_default_db(db_name=db_name,
                            username='cloudify',
                            password='cloudify')
     elif ctx.instance.runtime_properties['initial_mode'] == 'replica':
-        utils.run([
-            'sudo', '-u', 'postgres',
-            '/usr/pgsql-9.5/bin/repmgr', '-f', '/etc/repmgr.conf', 'standby',
-            'register'
-        ])
+        ctx.logger.info('Running database as replica')
+        utils_ha.run_repmgr_command(['standby', 'register'])
     else:
         ctx.abort_operation('Unknown initial_mode: {0}'.format())
-    _start_services(['pgbouncer', 'repmgrd'])
+
+    _start_services([PGBOUNCER_SERVICE_NAME, REPMGRD_SERVICE_NAME])
 
     if utils.is_upgrade or utils.is_rollback:
         # restore the 'provider_context' and 'snapshot' elements from file

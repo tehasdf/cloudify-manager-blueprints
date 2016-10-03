@@ -13,7 +13,5 @@ import utils  # NOQA
 KEEPALIVED_SERVICE_NAME = 'keepalived'
 ctx_properties = utils.ctx_factory.get(KEEPALIVED_SERVICE_NAME)
 
-if ctx_properties['keepalived_floating_ip']:
-    utils.systemd.enable(KEEPALIVED_SERVICE_NAME)
-    utils.start_service(KEEPALIVED_SERVICE_NAME)
-    utils.systemd.verify_alive(KEEPALIVED_SERVICE_NAME)
+utils.start_service(KEEPALIVED_SERVICE_NAME)
+utils.systemd.enable(KEEPALIVED_SERVICE_NAME)

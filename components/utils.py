@@ -94,10 +94,13 @@ def run(command, retries=0, ignore_failures=False, globx=False):
     return proc
 
 
-def sudo(command, retries=0, globx=False, ignore_failures=False):
+def sudo(command, retries=0, globx=False, ignore_failures=False, user=None):
     if isinstance(command, str):
         command = shlex.split(command)
-    command.insert(0, 'sudo')
+    if user is not None:
+        command = ['sudo', '-u', user] + command
+    else:
+        command = ['sudo'] + command
     return run(command=command, globx=globx, retries=retries,
                ignore_failures=ignore_failures)
 
@@ -640,6 +643,15 @@ class SystemD(object):
                                                         append_prefix)
         self.systemctl('restart', full_service_name, retries,
                        ignore_failure=ignore_failure)
+    def reload(self,
+                service_name,
+                retries=0,
+                ignore_failure=False,
+                append_prefix=True):
+        full_service_name = self._get_full_service_name(service_name,
+                                                        append_prefix)
+        self.systemctl('reload', full_service_name, retries,
+                       ignore_failure=ignore_failure)
 
     def is_alive(self, service_name, append_prefix=True):
         service_name = self._get_full_service_name(service_name, append_prefix)
@@ -811,10 +823,9 @@ def validate_md5_checksum(resource_path, md5_checksum_file_path):
 
 
 def write_to_json_file(content, file_path):
-    tmp_file = tempfile.NamedTemporaryFile(delete=False)
     mkdir(os.path.dirname(os.path.abspath(file_path)))
-    with open(tmp_file.name, 'w') as f:
-        f.write(json.dumps(content))
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        json.dump(content, tmp_file)
     move(tmp_file.name, file_path)
 
 
@@ -1222,13 +1233,17 @@ resource_factory = BlueprintResourceFactory()
 ctx_factory = CtxPropertyFactory()
 
 
-def start_service(service_name, append_prefix=True, ignore_restart_fail=False):
+def start_service(service_name, append_prefix=True, ignore_restart_fail=False,
+                  verify_started=True):
     if is_upgrade or is_rollback:
         systemd.restart(service_name,
                         ignore_failure=ignore_restart_fail,
                         append_prefix=append_prefix)
     else:
         systemd.start(service_name, append_prefix=append_prefix)
+
+    if verify_started:
+        systemd.verify_alive(service_name, append_prefix=append_prefix)
 
 
 def http_request(url,

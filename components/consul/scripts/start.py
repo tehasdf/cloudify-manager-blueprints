@@ -14,4 +14,3 @@ CONSUL_SERVICE_NAME = 'consul'
 
 utils.start_service(CONSUL_SERVICE_NAME)
 utils.systemd.enable(CONSUL_SERVICE_NAME)
-utils.systemd.verify_alive(CONSUL_SERVICE_NAME)

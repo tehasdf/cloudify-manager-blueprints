@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import json
-import tempfile
-
 from os.path import join, dirname
 
 from cloudify import ctx
@@ -16,25 +13,39 @@ import utils  # NOQA
 CONSUL_SERVICE_NAME = 'consul'
 ctx_properties = utils.ctx_factory.get(CONSUL_SERVICE_NAME)
 
-consul_config = {
-    'rejoin_after_leave': True,
-    'server': True,
-    'ui': True,
-    'advertise_addr': ctx.instance.host_ip,
-    'client_addr': '0.0.0.0',
-    'data_dir': '/var/consul',
-    'node_name': ctx.instance.id
-}
 
-if ctx_properties['consul_join']:
-    consul_config['bootstrap'] = False
-    consul_config['retry_join'] = ctx_properties['consul_join']
-else:
-    consul_config['bootstrap'] = True
+def configure_consul(cluster_ips):
+    if cluster_ips:
+        config = _make_bootstrap_consul_config()
+    else:
+        config = _make_join_consul_config(cluster_ips)
 
-with tempfile.NamedTemporaryFile(delete=False) as f:
-    json.dump(consul_config, f)
+    utils.write_to_json_file(config, '/etc/consul.d/config.json')
+    utils.systemd.configure(CONSUL_SERVICE_NAME)
 
-utils.move(f.name, '/etc/consul.d/config.json')
-utils.systemd.configure(CONSUL_SERVICE_NAME)
-utils.systemd.systemctl('daemon-reload')
+
+def _make_bootstrap_consul_config():
+    config = _make_common_consul_config()
+    config['bootstrap'] = True
+    return config
+
+
+def _make_join_consul_config(cluster_ips):
+    config = _make_common_consul_config()
+    config.update(bootstrap=False, retry_join=cluster_ips)
+    return config
+
+
+def _make_common_consul_config():
+    return {
+        'rejoin_after_leave': True,
+        'server': True,
+        'ui': True,
+        'advertise_addr': ctx.instance.host_ip,
+        'client_addr': '0.0.0.0',
+        'data_dir': '/var/consul',
+        'node_name': ctx.instance.id
+    }
+
+
+configure_consul(ctx_properties['consul_join'])
