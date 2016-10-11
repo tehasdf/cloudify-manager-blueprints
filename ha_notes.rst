@@ -37,6 +37,11 @@ Components
 Consul
 ------
 
+> Consul is used for storing the cluster state, to allow configuring
+> all the other components. Additionally, consul runs health checks
+> that update this cluster state, and rewrites config files when that
+> state changes.
+
 During configuration, the 'consul_join' parameter is examine: if it is empty,
 then a new consul cluster is initialized. Otherwise, it must be an array of
 addresses of existing machines in the cluster. It is not necessary to provide
@@ -45,6 +50,9 @@ the addresses of all the machines - just one is enough.
 
 Keepalived
 ----------
+
+> Keepalived is used to manage the virtual ip, moving it to the current
+> master manager.
 
 A simple `vrrp_instance` entry is used to manage the virtual IP.
 The 'virtualip' parameter needs to be provided when bootstrapping the master
@@ -74,6 +82,10 @@ server holding the virtual IP is also the current database master.
 
 Postgresql
 ----------
+
+> Repmgr is used to set up postgresql's streaming replication. Pgbouncer
+> is a proxy that the clients (REST service) connect to and their queries
+> are routed to the current master.
 
 There are three elements to postgresql HA: replication, monitoring, and proxying.
 For replication, we use repmgr (`repmgr home page <http://www.repmgr.org/>`_),
@@ -121,6 +133,9 @@ will allow load-balancing in the cluster.
 
 Syncthing
 ---------
+
+> Syncthing is used to keep the required directories in sync on all the manager
+> machines.
 
 For filesystem replication, `syncthing <https://syncthing.net/>`_ is used.
 During configuration, each node adds its address and ID to consul, and at runtime,
